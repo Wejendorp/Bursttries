@@ -1,0 +1,102 @@
+%\documentclass{DIKU-article}
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+% \usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage[pdftex,colorlinks]{hyperref}
+% \hypersetup{colorlinks=false}
+% \usepackage[labelfont=bf,up,textfont=it,up]{caption}
+\usepackage{graphicx}
+%\usepackage{subfigure}
+%\usepackage{multirow}
+%\usepackage{verbatim}
+%\usepackage{listings}
+\newcommand{\projecttitle}{Exploring Bursttries}
+\newcommand{\bigname}[1]{
+        \begin{center}\fontfamily{phv}\selectfont\large\scshape#1\end{center}
+}
+\title{Bachelorproject\\\projecttitle}
+\author{Jacob Wejendorp}
+
+\begin{document}
+\maketitle
+Project written under the advisory of Amr Elmasry.\\\\
+
+Meetings when needed?\\
+Correspondance via E-mail prior to meetings
+\newpage
+
+%Formål: Synopen er en projektbeskrivelse, som defierer opgaven. Synopsen bliver dermed læst af censor.
+%Synopsen kan ændres undervejs i projektet efter aftale med vejleder (husk at flevere den ændrede version).
+
+
+\bigname{\projecttitle}
+
+\section*{Problem definition}
+How can the burst trie datastructure be adapted to bit-strings and char-strings
+(fixed-width characters), and what kind of time- resp. memory-bounds can each obtain?
+Are these bounds on par with other structures used for maps, sets or heaps, and
+how is the practical performance?
+\\or\\
+I would like to 
+
+%Problemformulering
+
+
+\section*{Motivation}
+Define: What is a trie?
+Define: What is the idea of a burst trie?
+
+
+Burst tries have been shown to be faster and more space efficient than
+comparison-based datastructures such as B-trees and red-black trees
+when used on integer data\cite{Nash2008}, and for strings more efficient than trees,
+while unlike hash-tables allowing efficient iteration of sorted keys with
+minor modifications.\cite{wejendorpgrathwohl2010}
+In that context it would be interesting to see how versatile the structure is,
+if it is able to compete with other {\tt (multi-)set} structures and heaps with
+relevant modifications.
+
+In extension of prior work in \cite{wejendorpgrathwohl2010}, the trie's properties
+with fixed-width characters instead of bit-strings is a logical next step.
+
+Another interesting approach could be implementing an interface for exploiting 
+the bit-string approach for other datatypes. This could yield an aggregate structure,
+using fixed-width characters for the first levels and bit-strings for the next.
+
+
+%Begrundelse (hvorfor er emnet interessant dette er
+%essentielt en uddybning af problemformuleringen)
+
+\section*{Tasks and Time schedule}
+%Arbejdsopgaver og tidsplan
+\begin{enumerate}
+    \item Find related research papers, resulting in a preliminary bibliography.
+    \item Write up exact datastructure algorithms for insertion/deletion/search.
+          Works as a design document for step 3. Details to be found in \cite{Heinz2002}.
+    \item Write a C++ implementation of Burst tries based on 2, as claimed best in \cite{Nash2008}.
+    \item Perform practical tests with md5 rainbow tables, comparing base performance
+          with c++ stl map and set structures.
+          
+    \item Write proofs for the bounds for the basic structure, and for proposed
+          changes/tradeoffs. That is, set-, map-, bit-string- and char-string-
+          specific optimizations.
+    \item Implement and test the changed burst tries on the md5 tables.
+\end{enumerate}
+
+
+\section*{Methodology and literature}
+%Evt. metodiske overvejelser, relevant litteratur o.lign.
+
+I would like to verify the theoretical bounds claimed by \cite{Nash2008}.
+?
+\nocite{Badr:2005, Dorji:2010}
+
+\bibliographystyle{abbrv}
+\bibliography{bibliography}
+
+\end{document}
