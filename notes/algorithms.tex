@@ -1,0 +1,146 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage[vlined, ruled, linesnumbered]{algorithm2e}
+
+\title{Datastructure algorithms}
+\author{Jacob Wejendorp}
+
+\begin{document}
+\maketitle
+
+\section{Tries}
+\subsection{Generic Trie}
+By first establishing the regular trie methods, a basis is made for
+evaluating the modifications required by the other types.
+
+\begin{algorithm}[H]
+    \caption{\FuncSty{Search(}$k$\FuncSty{)}}
+    $Node \leftarrow$  root node\;
+    \ForEach{char $c$ in $k$}{
+        \eIf{$Node$ has child $c$}{
+            $Node \leftarrow Node[c]$\;
+        }{ %else
+            \Return{Nothing}
+        }
+    }
+    \Return{$Node$ value}
+\end{algorithm}
+
+\begin{algorithm}[H]
+    \caption{\FuncSty{Insert(}$k$\FuncSty{)}}
+    $Node \leftarrow$  root node\;
+    \ForEach{char $c$ in $k$}{
+        \eIf{$Node$ has child $c$}{
+            $Node \leftarrow Node[c]$\;
+        }{ %else
+            \emph{Create $Node[c]$}\;
+            $Node \leftarrow Node[c]$\;
+        }
+    }
+    \emph{Set end of string flag on $Node$}\;
+\end{algorithm}
+
+Deletion requires either using a counter on subtree elements or
+using parent pointers in the nodes. It is left open by most articles how to
+clean up after deletion, that is, how to perform {\tt DeleteIfEmpty}.
+This, however is needed in order to maintain a structure without dead ends.
+
+\begin{algorithm}[H]
+    \SetKwFunction{DeleteIfEmpty}{DeleteIfEmpty}
+
+    \caption{\FuncSty{Delete(}$k$\FuncSty{)}}
+    $Node \leftarrow$  root node\;
+    \ForEach{char $c$ in $k$}{
+        \eIf{$Node$ has child $c$}{
+            $Node \leftarrow Node[c]$\;
+        }{ %else
+            \Return{Nothing}
+        }
+    }
+    \eIf{$Node$ has children}{
+        \emph{Unset end of string flag on $Node$}\;               
+    }{ %else
+        \tcp{Remove parent nodes recursively until one has children,
+             is root or is flagged.}
+        DeleteIfEmpty(Node.parent)
+    }
+\end{algorithm}
+
+\subsection{Burst trie}
+Based on the descriptions in [Nash \& Gregg, 2010], the algorithms
+go as such:
+
+\begin{algorithm}[H]
+    \caption{\FuncSty{Search(}$k$\FuncSty{)}}
+    $Node \leftarrow$  root node\;
+    \ForEach{char $c$ in $k$}{
+        \eIf{$Node$ has child $c$}{
+            $Node \leftarrow Node[c]$\;
+        }{ %else
+            \eIf{$Node$ has bucket $B[c]$}{
+                \emph{Lookup remaining $k$ in $B[c]$}\;
+            }{
+                \Return{Nothing}\;
+            }
+        }
+    }
+\end{algorithm}
+where the lookup phase depends on the bucket structure chosen.
+The original lookup uses sorted doubly-linked lists:
+
+\begin{algorithm}[H]
+    \caption{\FuncSty{Lookup(}$B,k$\FuncSty{)}}
+    $Node \leftarrow B$\;
+    \While{$k < Node.k$}{
+        $Node \leftarrow Node.right$\;
+    }
+    \If{$Node.k = k$}{
+        \Return{$Node.v$}\;
+    }
+\end{algorithm}
+
+\begin{algorithm}[H]
+    \caption{\FuncSty{Insert(}$k$\FuncSty{)}}
+    \SetKwData{High}{high}
+    \SetKwData{Low}{low}
+    \SetKwFunction{Burst}{burst}
+
+    $Node \leftarrow$  root node\;
+    \ForEach{char $c$ in $k$}{
+        \eIf{$Node$ has child $c$}{
+            $Node \leftarrow Node[c]$\;
+        }{ %else
+            \eIf{$Node$ has bucket $B=[c]$}{
+                \emph{Insert remaining $k$ in $B$}\;
+                \If{$B$ is full}{
+                    $M \leftarrow \Burst(B)$\;
+                    $Node[c] \leftarrow M$\;
+                }
+            }{
+                \emph{Create bucket and insert $k$}\;
+                \If{$k < \Low$ or $k > \High$}{
+                    \emph{Update $Node$ \High, \Low pointers}\;
+                }
+            }
+            \Return{}
+        }
+    }
+\end{algorithm}
+
+
+\section{Bucket Containers}
+\subsection{Linkedlist}
+
+\begin{algorithm}[H]
+    \caption{\FuncSty{Insert}}
+
+\end{algorithm}
+
+\subsection{Arrays}
+
+
+
+\end{document}
