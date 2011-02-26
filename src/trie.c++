@@ -1,3 +1,8 @@
+/*   Basic trie implementation
+ *   for bachelorprojekt "Implementing and parallelising the burst trie"
+ *   By Jacob Wejendorp 2012
+ * */
+
 #include <iostream>
 #include <vector>
 #include <iostream>
@@ -82,15 +87,13 @@ class trie {
         }
         node_t *find_node(K key) {
             node_t *node = &root_node;
-            std::stringstream ss;
-            ss.str(key);
-            char c;
-            while(ss.good()) {
-                ss.get(c);
-                if((*(node->children))[c] != NULL)
-                    node = (*(node->children))[c];
+            int i = 0;
+            while(key[i] != '\0') {
+                if((*(node->children))[key[i]] != NULL)
+                    node = (*(node->children))[key[i]];
                 else
                     return NULL;
+                i++;
             }
             return node;
         }
@@ -116,16 +119,14 @@ class trie {
 
         void insert(K key, V *value) {
             node_t *node = &root_node;
-            std::stringstream ss;
-            ss.str(key);
-            char c;
-            while(ss.good()) {
-                ss.get(c);
-                if((*(node->children))[c] != NULL) {
-                    node = (*(node->children))[c];
+            int i = 0;
+            while(key[i] != '\0') {
+                if((*(node->children))[key[i]] != NULL) {
+                    node = (*(node->children))[key[i]];
                 } else {
-                    node = create_node(node, c);
+                    node = create_node(node, key[i]);
                 }
+                i++;
             }
             node->value = value;
         }
@@ -158,20 +159,25 @@ void gen_random(char *s, const int len) {
 int main() {
 
     trie<std::string> t;
-    std::vector<std::string> keys(TESTSIZE);
+    std::vector<std::string*> keys(TESTSIZE);
     for(int i = 0; i < TESTSIZE; i++) {
         int len = 12; // (rand() % 12) + 1;
         char *s = new char[len];
         gen_random(s, len);
-        std::string st = std::string(s);
+        //std::cout << s << " ";
+        std::string *st = new std::string(s);
         delete [] s;
-        t.insert(st, &st);
+        t.insert(*st, st);
         keys[i] = st;
     }
 
     for(int i = 0; i < TESTSIZE; i++) {
-        //std::cout << (*t.search(keys[i]));
-        t.remove(keys[i]);
+        if(keys[i] != t.search(*(keys[i])))
+            std::cout << "Mismatched search!\n";
+        //std::cout << *(keys[i]);
+//        delete(t.search(*(keys[i])));
+//        t.remove(*(keys[i]));
+        delete(keys[i]);
     }
     return 0;
 }
