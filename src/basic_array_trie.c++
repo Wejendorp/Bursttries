@@ -1,68 +1,58 @@
 /*   Basic trie implementation
  *   for bachelorprojekt "Implementing and parallelising the burst trie"
  *   By Jacob Wejendorp 2012
+ *
+ *   Insertions, searches and deletions in O(l).
+ *   But has a huge memory waste, from allocation of 128 pointers in
+ *   each node.
  * */
 
 #include <iostream>
 #include <vector>
 #include <iostream>
-#include <sstream>
 #include <fstream>
 #include <string>
-
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#define NDEBUG // uncomment to disable asserts
 
-#define SIZE 128
-#define ROOT true
-#define NOROOT false
-
+#define NODESIZE 128
 #define TESTSIZE 100000
 
 template<
-    typename V
-//    typename K = std::string,
-//    typename A = std::allocator<V>
+    typename V,
+    typename K = std::string
 >
 class trie {
     private:
         struct node_t {
-            node_t *children[SIZE]; // Children array
+            node_t *children[NODESIZE]; // Children array
             node_t *parent; // Parent pointer, for deletion
             int parentindex;// Knows its index in the parent, for deletions
             int childcount; // Keep a counter of children, for deletions
             V *value; // Value pointer
         } root_node;
+        int nodes_created;
 
-        typedef std::string K;
-        typedef std::allocator<V> A;
-        A allocator;
-        typedef typename A::template rebind<node_t>::other node_alloc_t;
+        typedef std::allocator<node_t> node_alloc_t;
         node_alloc_t node_allocator;
-
-
+        
         node_t *create_node(node_t *parent, int index) {
+            nodes_created++;
             node_t *new_node = node_allocator.allocate(1);
-            memset(new_node->children, 0, SIZE*sizeof(node_t*));
-            if(parent != NULL) {
-                new_node->parentindex = index;
-                parent->children[index] = new_node;
-                parent->childcount++;
-            }
+            memset(new_node->children, 0, sizeof(new_node->children));
+            parent->children[index] = new_node;
+            parent->childcount++;
+            new_node->parentindex = index;
             new_node->parent = parent;
             new_node->value = NULL;
             new_node->childcount = 0;
 
             return new_node;
         }
-        node_t *delete_node(node_t *node, bool root = NOROOT) {
+        node_t *delete_node(node_t *node) {
             if(node == NULL) return NULL;
-            if(root)
-                for(int i = 0; i < SIZE; i++) {
-                    delete_node(node->children[i], root);
-                }
+            for(int i = 0; node->childcount > 0, i < NODESIZE; i++)
+                delete_node(node->children[i]);
             if(node != &root_node) {
                 node_t *parent = node->parent;
                 node->parent = NULL;
@@ -87,15 +77,17 @@ class trie {
             return node;
         }
     public:
-        explicit trie(A const& a = A()) : allocator(a) {
-            memset(root_node.children, 0, SIZE*sizeof(node_t*));
+        explicit trie() {
+            memset(root_node.children, 0, sizeof(root_node.children));
             root_node.childcount = 0;
             root_node.value = NULL;
             root_node.parent = NULL;
+            nodes_created = 0;
         }
 
         ~trie() {
-            delete_node(&root_node, ROOT);
+            delete_node(&root_node);
+            std::cout << nodes_created << " nodes were made\n";
         }
 
         V *search(K key) {
@@ -113,7 +105,7 @@ class trie {
                     node = create_node(node, key[i]);
                 i++;
             }
-            if(!node->value) node->value = value;
+            if(!node->value) node->value = value; // No overwrite
         }
 
         void erase(K key) {
@@ -122,42 +114,8 @@ class trie {
             if(node->childcount != 0)
                 node->value = NULL;
             else
-                while(node->childcount == 0 && node != &root_node)
+                while(node->childcount == 0 && node != &root_node \
+                        && node->value == NULL)
                     node = delete_node(node);
         }
 };
-
-void gen_random(char *s, const int len) {
-    static const char alphanum[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
-
-    for (int i = 0; i < len; ++i) {
-        s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
-    }
-    s[len-1] = 0;
-}
-
-int main() {
-    trie<std::string> t;
-    std::vector<std::string*> keys(TESTSIZE);
-
-    int len = 5; // (rand() % 12) + 1;
-    char *s = new char[len];
-    for(int i = 0; i < TESTSIZE; i++) {
-        gen_random(s, len);
-        std::string *st = new std::string(s);
-        t.insert(*st, st);
-        keys[i] = st;
-    }
-    delete [] s;
-
-    for(int i = 0; i < TESTSIZE; i++) {
-        if(keys[i] != t.search(*(keys[i])))
-            std::cout << "Mismatched search!\n";
-        delete(keys[i]);
-    }
-    return 0;
-}
-
