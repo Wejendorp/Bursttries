@@ -1,0 +1,34 @@
+\begin{thebibliography}{1}
+
+\bibitem{Badr:2005}
+G.~Badr and B.~J. Oommen.
+\newblock On using conditional rotations and randomized heuristics for
+  self-organizing ternary search tries.
+\newblock In {\em Proceedings of the 43rd annual Southeast regional conference
+  - Volume 1}, ACM-SE 43, pages 109--115, New York, NY, USA, 2005. ACM.
+
+\bibitem{Dorji:2010}
+Tshering~C. Dorji, El-sayed Atlam, Susumu Yata, Mahmoud Rokaya, Masao Fuketa,
+  Kazuhiro Morita, and Jun-ichi Aoe.
+\newblock New methods for compression of mp double array by compact management
+  of suffixes.
+\newblock {\em Inf. Process. Manage.}, 46:502--513, September 2010.
+
+\bibitem{wejendorpgrathwohl2010}
+Bjørn Grathwohl and Jacob Wejendorp.
+\newblock An implementation of burst tries for 64 bit integer keys.
+\newblock 2010.
+
+\bibitem{Heinz2002}
+Steffen Heinz, Justin Zobel, and Hugh~E. Williams.
+\newblock {Burst Tries: a Fast, Efficient Data Structure for String Keys}.
+\newblock {\em ACM Transactions on Information Systems}, 20(2):192--223, 2002.
+
+\bibitem{Nash2008}
+Nicholas Nash and David Gregg.
+\newblock {Comparing Integer Data Structures for 32 and 64 Bit Keys}.
+\newblock In Catherine McGeoch, editor, {\em Experimental Algorithms}, volume
+  5038 of {\em Lecture Notes in Computer Science}, pages 28--42. Springer
+  Berlin / Heidelberg, 2008.
+
+\end{thebibliography}

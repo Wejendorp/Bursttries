@@ -1,102 +1,160 @@
-%\documentclass{DIKU-article}
-\documentclass{article}
-
-\usepackage[utf8]{inputenc}
-\usepackage[english]{babel}
-% \usepackage{fullpage}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{latexsym}
-\usepackage[pdftex,colorlinks]{hyperref}
-% \hypersetup{colorlinks=false}
-% \usepackage[labelfont=bf,up,textfont=it,up]{caption}
-\usepackage{graphicx}
-%\usepackage{subfigure}
-%\usepackage{multirow}
-%\usepackage{verbatim}
-%\usepackage{listings}
-\newcommand{\projecttitle}{Exploring Bursttries}
+\documentclass[a4paper, oneside, draft]{memoir}
+\setcounter{secnumdepth}{-1} % Sæt overskriftsnummereringsdybde. Disable = -1.
+\newcommand{\projecttitle}{Implementing and parallelising Bursttries}
 \newcommand{\bigname}[1]{
         \begin{center}\fontfamily{phv}\selectfont\large\scshape#1\end{center}
 }
-\title{Bachelorproject\\\projecttitle}
+\title{Project synopsis\\\projecttitle}
 \author{Jacob Wejendorp}
-
+\renewcommand{\bibsection}{\section*{References}}
 \begin{document}
 \maketitle
-Project written under the advisory of Amr Elmasry.\\\\
+%Project written under the advisory of Amr Elmasry.\\\\
 
-Meetings when needed?\\
-Correspondance via E-mail prior to meetings
-\newpage
 
+\clearpage
 %Formål: Synopen er en projektbeskrivelse, som defierer opgaven. Synopsen bliver dermed læst af censor.
-%Synopsen kan ændres undervejs i projektet efter aftale med vejleder (husk at flevere den ændrede version).
+%Synopsen kan ændres undervejs i projektet efter aftale med vejleder (husk at flevere den ændrede version)
 
 
 \bigname{\projecttitle}
 
-\section*{Problem definition}
-How can the burst trie datastructure be adapted to bit-strings and char-strings
-(fixed-width characters), and what kind of time- resp. memory-bounds can each obtain?
-Are these bounds on par with other structures used for maps, sets or heaps, and
-how is the practical performance?
-\\or\\
-I would like to 
+\section{Problem definition}
+How can the burst trie be parallelised, in a way that allows building and searching
+the structure faster than an equivalent serial singlethreaded approach?
+What kind of overhead does it create, and does this influence relative
+performance between the individual variants of the structure?
+
+%Rainbow tables ... is not an option.
+ %How can the burst trie datastructure be adapted to bit-strings and char-strings
+%(fixed-width characters), and what kind of time- resp. memory-bounds can each obtain?
+%Are these bounds on par with other structures used for maps, sets or heaps, and
+%how is the practical performance?
+%\\or\\
+%I wish to verify the  
 
 %Problemformulering
+\section{Introduction}
+%Working with rainbow tables ... is not an option.
+Working with large datasets is becoming increasingly relevant, and our
+datasets are growing faster than our scaling in cpu-power. This makes optimizing
+these datasets still relevant.
 
+\subsection{What is a trie?}
+%Define: What is a trie?
+A trie is a datastructure for storing keys based on their prefixes.
+It is also known as a prefix-tree. The idea is equivalent to that of
+"most significant digit" (MSD-)radix sort.
 
-\section*{Motivation}
-Define: What is a trie?
-Define: What is the idea of a burst trie?
+Each level in the tree reads a prefix of the key and branches accordingly.
+A trie working on strings with the latin alphabet will thus have a branching
+factor of 26. Each read character corresponds to a branch and goes down another
+level until finding the leaf matching the requested key or terminating
+unsuccesfully. A trie is as deep as the longest key that it contains, since
+each level removes a digit from the key. It is this bound that newer trie
+variants attempt to improve, without compromising lookup efficiency.
 
+\subsection{Burst tries}
+%Define: What is the idea of a burst trie?
+Following the radix sort analogy, the regular trie uses radix-sort until
+reaching the trivial case, with no boundary for using other sorting methods.
+The burst trie, on the other hand, uses a limit for employing other methods
+based on 
+the element count. In other words a burst trie differs from a regular trie by
+the fact that it compresses the leaves into "bucket" structures when there are
+few of them in a particular subtree. Each bucket is then assigned a capacity.
+When inserting elements into a burst trie, the structure finds the corresponding
+bucket and puts the element in it. If the bucket exceeds its capacity it 
+"bursts", creating a new parenting node and redistributing the elements 
+into buckets under it, based on the next part of the prefix.
+As such, each bucket is uniquely determined by its prefix (or path),
+and the elements in each bucket have the same prefix, making it possible to
+discard this information to save space.
 
+\section{Motivation}
+% Why are burst tries nice?
 Burst tries have been shown to be faster and more space efficient than
-comparison-based datastructures such as B-trees and red-black trees
-when used on integer data\cite{Nash2008}, and for strings more efficient than trees,
-while unlike hash-tables allowing efficient iteration of sorted keys with
-minor modifications.\cite{wejendorpgrathwohl2010}
+compari\-son-based datastructures such as B-trees and red-black trees
+when used on integer data.
+For strings the burst trie is more efficient than trees, while unlike
+hash-tables allowing efficient iteration of sorted keys with minor modifications.
 In that context it would be interesting to see how versatile the structure is,
-if it is able to compete with other {\tt (multi-)set} structures and heaps with
+if it is able to compete with other \textit{(multi-)set} structures and heaps with
 relevant modifications.
 
-In extension of prior work in \cite{wejendorpgrathwohl2010}, the trie's properties
-with fixed-width characters instead of bit-strings is a logical next step.
+The original burst trie uses linked lists for the containers, but this has been
+shown to be inefficient in a modern cache hierachy. There has been done research
+in different ways to improve the structure, by replacing the bucket structure.
+Nash and Gregg have done work on optimizing the trie itself, using so-called
+level- and path-compression.
 
-Another interesting approach could be implementing an interface for exploiting 
-the bit-string approach for other datatypes. This could yield an aggregate structure,
-using fixed-width characters for the first levels and bit-strings for the next.
+In an earlier course, the author has done work on the burst trie as an Integer
+datastructure in cooperation with Niels Bjørn Bugge Grathwohl.
 
+% Multithreading!!
+While maintaining optimizations for caching remains important, modern processor
+scaling primarily focuses on multithreading, making it increasingly important
+to create efficient multi-threaded datastructures and algorithms.
+To the author's knowledge, no work has been done on parallelising the structure
+for modern multi-core processors, as this was left open by Askitis and Sinha.
+
+
+%Another interesting approach could be implementing an interface for exploiting 
+%the bit-string approach for other datatypes. This could yield an aggregate structure,
+%using fixed-width characters for the first levels and bit-strings for the next.
+
+\section{Learning objectives}
+The project will make the student able to:
+\begin{enumerate}
+    \item Read and implement datastructures based on leading research papers.
+    \item Implement and reason about parallel algorithms.
+\end{enumerate}
 
 %Begrundelse (hvorfor er emnet interessant dette er
 %essentielt en uddybning af problemformuleringen)
 
-\section*{Tasks and Time schedule}
+\section{Tasks and Time schedule}
+Time schedule is based on work in the weeks 6 to 23.
 %Arbejdsopgaver og tidsplan
 \begin{enumerate}
-    \item Find related research papers, resulting in a preliminary bibliography.
-    \item Write up exact datastructure algorithms for insertion/deletion/search.
-          Works as a design document for step 3. Details to be found in \cite{Heinz2002}.
-    \item Write a C++ implementation of Burst tries based on 2, as claimed best in \cite{Nash2008}.
-    \item Perform practical tests with md5 rainbow tables, comparing base performance
-          with c++ stl map and set structures.
-          
-    \item Write proofs for the bounds for the basic structure, and for proposed
-          changes/tradeoffs. That is, set-, map-, bit-string- and char-string-
-          specific optimizations.
-    \item Implement and test the changed burst tries on the md5 tables.
+    \item Preliminary research (1-2 weeks):
+        \begin{itemize}
+        \item Find related research papers, resulting in a preliminary bibliography.
+        \item Write up the basic burst trie algorithm.
+        \item Write up alterations based on related work.
+        \end{itemize}
+    \item Theory (3 weeks):
+        \begin{itemize}
+        \item Write proofs for the bounds for the basic structure, and for proposed
+          changes/tradeoffs.
+        \item Investigate possible tradeoffs for static tries, and for map-, set-
+            and multi-set functionality of tries.
+        \item Investigate possible locking mechanism to allow multithreaded
+            processing and updating.
+        \end{itemize}
+    \item Implementation (4 weeks):
+        \begin{itemize}
+        \item Write C++ implementation of Burst trie variants based on design
+                documents from step 1.
+        \item Modify implementations to allow multithreaded processing.
+        \end{itemize}
+    \item Testing (2 weeks):
+        \begin{itemize}
+        \item Write a test-suite for the datastructures.
+        \item Perform tests using different datasets, with 
+                skewed/even distributions, different key lengths and data sizes.
+        \end{itemize}
+    \item Write report (3 weeks)
+    \item (2 weeks) Buffer for possible complications and expansions.
 \end{enumerate}
 
-
-\section*{Methodology and literature}
-%Evt. metodiske overvejelser, relevant litteratur o.lign.
-
-I would like to verify the theoretical bounds claimed by \cite{Nash2008}.
-?
-\nocite{Badr:2005, Dorji:2010}
-
-\bibliographystyle{abbrv}
+\section{Possible extensions}
+\begin{enumerate}
+    \item Investigate tries as a cache-oblivious structure, eliminating the
+        demand for staying within RAM-limits.
+\end{enumerate}
+\nocite{Badr:2005, Dorji:2010, Nash2008, wejendorpgrathwohl2010, Heinz2002}
+\bibliographystyle{plain}
 \bibliography{bibliography}
 
 \end{document}
