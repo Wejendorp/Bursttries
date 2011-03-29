@@ -4,6 +4,7 @@
 \usepackage[english]{babel}
 
 \usepackage[vlined, ruled, linesnumbered]{algorithm2e}
+\usepackage{amsmath}
 
 \title{Datastructure algorithms}
 \author{Jacob Wejendorp}
@@ -11,23 +12,9 @@
 \begin{document}
 \maketitle
 
-\section{Tries}
-\subsection{Generic Trie}
-By first establishing the regular trie methods, a basis is made for
-evaluating the modifications required by the other types.
-
-\begin{algorithm}[H]
-    \caption{\FuncSty{Search(}$k$\FuncSty{)}}
-    $Node \leftarrow$  root node\;
-    \ForEach{char $c$ in $k$}{
-        \eIf{$Node$ has child $c$}{
-            $Node \leftarrow Node[c]$\;
-        }{ %else
-            \Return{Nothing}
-        }
-    }
-    \Return{$Node$ value}
-\end{algorithm}
+\section{Generic Trie}
+By first establishing the regular trie methods, a basis is made for evaluating
+the modifications required by the other types.
 
 \begin{algorithm}[H]
     \caption{\FuncSty{Insert(}$k$\FuncSty{)}}
@@ -42,36 +29,30 @@ evaluating the modifications required by the other types.
     }
     \emph{Set end of string flag on $Node$}\;
 \end{algorithm}
+Using this as the basis for the insertion and deletion methods, the trie is
+built and searched by reading one character at a time. So just like an
+insertion might create a deep path down the trie, a deletion will have to
+remove dead ends, upon removing an entry.
 
-Deletion requires either using a counter on subtree elements or
-using parent pointers in the nodes. It is left open by most articles how to
-clean up after deletion, that is, how to perform {\tt DeleteIfEmpty}.
-This, however is needed in order to maintain a structure without dead ends.
+A depth-first approach is taken with deletions. The recursive call returns with
+a value, determining if changes might be needed at the higher level.
 
-\begin{algorithm}[H]
-    \SetKwFunction{DeleteIfEmpty}{DeleteIfEmpty}
+With the nodes having $\alpha$ pointers, the memory overhead for sparse tries
+is very big.
 
-    \caption{\FuncSty{Delete(}$k$\FuncSty{)}}
-    $Node \leftarrow$  root node\;
-    \ForEach{char $c$ in $k$}{
-        \eIf{$Node$ has child $c$}{
-            $Node \leftarrow Node[c]$\;
-        }{ %else
-            \Return{Nothing}
-        }
-    }
-    \eIf{$Node$ has children}{
-        \emph{Unset end of string flag on $Node$}\;               
-    }{ %else
-        \tcp{Remove parent nodes recursively until one has children,
-             is root or is flagged.}
-        DeleteIfEmpty(Node.parent)
-    }
-\end{algorithm}
+As a function of collision odds, each unique subtrie incurs $(\alpha-1) l$
+pointers of overhead for a unique substring of length $l$. As such, the total
+pointer count is anywhere up to:
+\begin{align*}
+    M(n) = O(n * (\alpha l - 1))\\
+\end{align*}
 
-\subsection{Burst trie}
-Based on the descriptions in [Nash \& Gregg, 2010], the algorithms
-go as such:
+
+\newpage
+\section{Burst trie}
+\subsection{Trie algorithms}
+Based on the descriptions in [Nash \& Gregg, 2010], the algorithms for search
+and insertion are as such:
 
 \begin{algorithm}[H]
     \caption{\FuncSty{Search(}$k$\FuncSty{)}}
@@ -88,58 +69,123 @@ go as such:
         }
     }
 \end{algorithm}
-where the lookup phase depends on the bucket structure chosen.
-The original lookup uses sorted doubly-linked lists:
 
-\begin{algorithm}[H]
-    \caption{\FuncSty{Lookup(}$B,k$\FuncSty{)}}
-    $Node \leftarrow B$\;
-    \While{$k < Node.k$}{
-        $Node \leftarrow Node.right$\;
-    }
-    \If{$Node.k = k$}{
-        \Return{$Node.v$}\;
-    }
-\end{algorithm}
+where the lookup phase depends on the bucket structure chosen. The original
+lookup uses sorted doubly-linked lists.
 
 \begin{algorithm}[H]
     \caption{\FuncSty{Insert(}$k$\FuncSty{)}}
-    \SetKwData{High}{high}
-    \SetKwData{Low}{low}
     \SetKwFunction{Burst}{burst}
 
     $Node \leftarrow$  root node\;
+    \tcp{Move down until reaching bucket reference}
     \ForEach{char $c$ in $k$}{
-        \eIf{$Node$ has child $c$}{
+        \If{$Node$ has child $c$}{
             $Node \leftarrow Node[c]$\;
-        }{ %else
-            \eIf{$Node$ has bucket $B=[c]$}{
-                \emph{Insert remaining $k$ in $B$}\;
-                \If{$B$ is full}{
-                    $M \leftarrow \Burst(B)$\;
-                    $Node[c] \leftarrow M$\;
-                }
-            }{
-                \emph{Create bucket and insert $k$}\;
-                \If{$k < \Low$ or $k > \High$}{
-                    \emph{Update $Node$ \High, \Low pointers}\;
-                }
-            }
-            \Return{}
         }
+    }
+    \tcp{Node either has a bucket at $c$ or one is created}
+    \eIf{$Node$ has bucket $B[c]$}{
+        \emph{Insert remaining $k$ in $B$}\;
+        \If{$B$ is full}{
+            $Node[c] \leftarrow \Burst(B)$\;
+        }
+    }{
+        $b \leftarrow $\emph{Create bucket and insert $k$}\;
     }
 \end{algorithm}
 
+Deletions are mentioned to be equivalent to insertions, in that removing a key
+may cause removal of a bucket, and nodes. The method being equivalent to that
+of the basic trie, or the insertion algorithm in reverse.
 
-\section{Bucket Containers}
-\subsection{Linkedlist}
+\subsection{Bucket structures}
+Depending on the chosen bucket structure, insertions, deletions and searches
+accomplish different time complexities, and allow different bucket sizes
+without becoming inefficient.
 
-\begin{algorithm}[H]
-    \caption{\FuncSty{Insert}}
+\subsubsection{Arrays}
+Unsorted arrays make for constant-time insertions, while
+requiring linear search time.
 
-\end{algorithm}
+A sorted array is the most compressed logarithmic time searchable
+representation of the elements. This makes for cache- and time-efficient
+searching of the buckets, while increasing the insertion cost to become worst
+case linear in the bucket size, with bigger constant factors from
+reallocations.
 
-\subsection{Arrays}
+
+
+
+\subsubsection{Hash tables}
+The idea of using hash tables as an intermediate step is dubbed a HAT-trie,
+and using bit-wise hashing finds creates sub-buckets, allowing the buckets
+as a whole to become very large without becoming inefficient to access.
+
+
+
+
+\section{Parallelisation}
+\subsection{A locking approach}
+Read-access is easily implemented in parallel, allowing searches to proceed in
+parallel, checking only whether the branch they take is currently in exclusive
+mode.
+
+As such, each level in the trie incurs a constant overhead, checking the locks
+before accessing.
+
+The algorithm will unfortunately be serial until the lookup in the bucket
+structure, which can, depending on the chosen bucket structure, be
+paralellised. This means that $n$ searches can be performed in $O(l+b)$ time,
+where $b$ is variable on chosen method for bucket search, but that if
+simultanious insertions are performed, the insertion can possibly delay all
+other operations.
+
+\subsection{Avoiding locks}
+Insertions consist of two phases, the bucket insertion, and the possible
+bursting. Bursting can be made dynamically parallel up to a factor of $O(b)$ by
+using one thread for each element in the queue, and relying on the recursive
+structure of the trie. This means bursting can theoretically be done in
+$\omega(1)$ using $b$ processors, but the upper bound depends on the
+distribution of the nodes. That is, the only case where the elements will cause
+further bursting is if they are identical on the next part of the key, which
+has a $\frac{1}{\alpha^b}$ probability.
+
+What if the buckets grew exponentially - that would let the bursting be
+guaranteed constant, since $b$ elements cannot possibly cause a burst of a
+$b*a$ capacity container, with $a > 1$.
+
+
+I postulate, however, that the structure can be made parallel using a lock-free
+scheme, assuming that the bucket container has a series of properties.
+
+If we are to allow searches to proceed unaffected during bursting, the bucket
+vector needs to be kept active until the nodes have all been inserted into the
+newly created node, upon which the pointers are swapped in an atomic operation.
+Thus, the bursting thread redistributes the elements in a ghost node, which is
+only visible to the trie upon this pointer switch. There might, however be
+active searches in the old bucket, which means the bucket needs a reference
+counter, which the bursting thread will then have to wait for to become zero.
+Then the bucket is removed. The bucket is hereby used as a queue for the
+insertion into the new node, and can be searched during this time, if the
+elements are copied instead of removed.
+
+The interesting part is when another insertion happens into the same bucket,
+which is currently being burst. If the trivial option is chosen, the queue
+operates in a FIFO manner during bursting, meaning that the other insertion
+happens by simply appending the element to the queues tail in constant time.
+This requires a buffer to be available in the buckets, for instance by making
+sure the bucket is expanded "x" beyond the bucket capacity upon insertion of
+the violating element.
+
+The bucket will then need to be flagged, for use with searches, if the order of
+the elements is violated on insertion during bursting. A linear search approach
+is the forced. The question is whether reusing the bucket is actually the best
+solution, or whether a special insertion queue should be used, for instance in
+the form of a linked list, which can easily be maintained atomically. Searches
+will then have to look at both the linked list and the bucket, but this could
+result in $O(\log b + i)$ time instead of $O(b+i)$.
+
 
 
 
