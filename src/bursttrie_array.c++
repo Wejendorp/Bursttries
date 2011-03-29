@@ -17,7 +17,7 @@
 #include <algorithm>
 
 #define NODESIZE 128
-#define BUCKETCAPACITY 128
+#define BUCKETCAPACITY 256
 
 #define UNUSED 0
 #define BUCKET 1
@@ -57,6 +57,9 @@ class trie {
         typedef std::allocator<child> child_alloc_t;
         child_alloc_t child_allocator;
 
+        /*
+         * Constructors and delete
+         * */
         node_t *create_node(char index) {
             nodes_created++;
             node_t *new_node = node_allocator.allocate(1);
@@ -92,6 +95,10 @@ class trie {
             vector_allocator.destroy(&b->contents);
             vector_allocator.deallocate(&b->contents, 1);
         }
+
+        /*
+         * Searches
+         * */
         std::pair<K, bucket_t *> find_bucket(K key) {
             node_t *node = &root_node;
             int i = 0;
@@ -106,36 +113,55 @@ class trie {
             }
         }
         V *find_in_bucket(bucket_t *b, K key) {
-            //std::cout << "in_bucket: " << key << std::endl;
             typename std::vector<std::pair<K, V*> >::iterator it;
             it = std::lower_bound(b->contents.begin(), b->contents.end(), std::make_pair<K, V*>(key, NULL));
             if((*it).first == key) return (*it).second;
             return NULL;
         }
+        bool delete_from_trie(child *c, K key) {
+            if(key[0] != '\0') {
+                delete_from_trie(c->children[key[0]], key.substr(1));
+            } else {
+                
+            }
+            return true;
+        }
 
+        bool delete_from_bucket(bucket_t *b, K key) {
+            typename std::vector<std::pair<K, V*> >::iterator it;
+            it = std::lower_bound(b->contents.begin(), b->contents.end(), std::make_pair<K, V*>(key, NULL));
+            if((*it).first != key)
+                return false;
+            b->contents.erase(it);
+            return true;
+        }
+
+        /*
+         * Insertions
+         * */
         void burst(child *c, char index) {
             //std::cout << "bursting bucket"<<c<<"["<<index<<"]"<<std::endl;
-            if(c->tag != BUCKET) exit(1);
+            //if(c->tag != BUCKET) exit(1);
             c->tag = NODE;
 
             node_t *newnode = create_node(index);
             for(int i = 0; i < c->b->contents.size(); i++) {
                 insert_into_node(newnode, c->b->contents[i].first, c->b->contents[i].second);
             }
-            delete_bucket(c->b);
+            bucket_t *temp = c->b;
             c->n = newnode;
+            delete_bucket(temp);
         }
         void insert_into_node(node_t *node, K key, V *value) {
             int i = 0;
             child *p;
-//            std::cout << "inserting " << key << std::endl;
             while(key[i] != '\0') {
                 if(node->children[key[i]].tag != UNUSED) {
                     p = &node->children[key[i]];
                     if(p->tag == NODE) {
                         node = p->n;
                     } else if(p->tag == BUCKET) {
-                        bucket_t *b = (bucket_t*)p->b;  // FIX!
+                        bucket_t *b = (bucket_t*)p->b;
                         insert_into_bucket(b, key.substr(i+1), value);
                         // Bursting?
                         if(b->contents.size() > BUCKETCAPACITY)
@@ -150,16 +176,13 @@ class trie {
                 }
                 i++;
             }
-            // end of string reached, in an active node
-            //if(!node->children[0]) node->children[0] = value; // No overwrite
+            // \0 handling?
         }
         void insert_into_bucket(bucket_t *b, K key, V *value) {
-            b->contents.insert(std::lower_bound(b->contents.begin(),
-                    b->contents.end(), std::make_pair<K, V*>(key, value)
-                    ),
+            b->contents.insert(
+                    std::lower_bound(b->contents.begin(),
+                    b->contents.end(), std::make_pair<K, V*>(key, value)),
                 std::make_pair<K, V*>(key, value));
-
- //           b->contents.push_back(make_pair(key, value));
         }
     public:
         explicit trie() {
@@ -180,22 +203,19 @@ class trie {
             //std::cout << "searching for: " << key << std::endl;
             std::pair<K, bucket_t *> nodedata = find_bucket(key);
             if(nodedata.second == NULL) return NULL;
-            return find_in_bucket(nodedata.second,
-                                  nodedata.first);
+            return find_in_bucket(nodedata.second, nodedata.first);
         }
 
         void insert(K key, V *value) {
             insert_into_node(&root_node, key, value);
         }
 
-//        void erase(K key) {
-//            node_t *node = find_bucket(key);
-//            if(node == NULL) return;
-//            if(node->high != NULL || node->low != NULL)
-//                node->children[0];
-//            else
-//                while(node->high == node->low && node != &root_node \
-//                        && node->children[0] == NULL)
-//                    node = delete_node(node);
-//        }
+        void erase(K key) {
+            std::pair<K, bucket_t *> nodedata = find_bucket(key);
+            if(nodedata.second == NULL) return;
+            if(delete_from_bucket(nodedata.second, nodedata.first)) {
+                if(nodedata.second->contents.size() == 0)
+                    delete_bucket(nodedata.second);
+            }
+        }
 };

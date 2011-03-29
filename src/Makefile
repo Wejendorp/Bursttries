@@ -1,5 +1,5 @@
 CC=../gstlfilt/gfilt
-CFLAGS=-O2 -DSEED=38957421 -DTESTSIZE=1000000 -DSEARCH=1
+CFLAGS=-O2 -DSEED=454471914 -DTESTSIZE=5000000 -DSEARCH=0
 
 tests: test_map test_trie
 
@@ -20,7 +20,9 @@ massif_show:
 
 time: tests
 	time -v ./test_map 2> time.log
+	echo "\n" >> time.log
 	time -v ./test_trie 2>> time.log
+	cat time.log | most
 
 clean:
 	rm -f test_map test_trie *.o massif.map.out massif.trie.out
