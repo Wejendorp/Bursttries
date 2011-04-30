@@ -1,4 +1,4 @@
 This is the repository of my bachelor project:
 Implementing and parallelising the Bursttrie.
 
-20112903 - Working sequential implementation added to github.
+Requires an installation of the GSL Library, and uses the LibAtomic_ops project.
