@@ -1,5 +1,5 @@
-CC=../gstlfilt/gfilt
-CFLAGS=-O2 -DSEED=454471914 -DTESTSIZE=5000000 -DSEARCH=0
+CC=../../gstlfilt/gfilt
+CFLAGS=-O2 -DSEED=454471914 -DTESTSIZE=10000000 -DSEARCH=0
 
 tests: test_map test_trie
 

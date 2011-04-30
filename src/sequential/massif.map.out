@@ -1,0 +1,976 @@
+desc: --massif-out-file=massif.map.out
+cmd: ./test_map
+time_unit: i
+#-----------
+snapshot=0
+#-----------
+time=0
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=1
+#-----------
+time=266474566
+mem_heap_B=93092488
+mem_heap_extra_B=6691736
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=2
+#-----------
+time=426312032
+mem_heap_B=102138928
+mem_heap_extra_B=11315472
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=3
+#-----------
+time=769459095
+mem_heap_B=121315588
+mem_heap_extra_B=21116876
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=4
+#-----------
+time=1036349695
+mem_heap_B=136086208
+mem_heap_extra_B=28666304
+mem_stacks_B=0
+heap_tree=detailed
+n4: 136086208 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n3: 29912640 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 14977200 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 14977200 0x4012DA: main (stl_map.h:540)
+  n1: 14934720 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 14934720 0x4012DA: main (stl_map.h:540)
+  n0: 720 in 2 places, all below massif's threshold (01.00%)
+ n1: 21188120 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 21188120 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 21188120 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 21188120 0x4010C3: main (test.c++:31)
+ n0: 4985448 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=5
+#-----------
+time=1270974989
+mem_heap_B=149001208
+mem_heap_extra_B=35267304
+mem_stacks_B=0
+heap_tree=detailed
+n4: 149001208 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n3: 36800640 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 18416544 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 18416544 0x4012DA: main (stl_map.h:540)
+  n1: 18383328 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 18383328 0x4012DA: main (stl_map.h:540)
+  n0: 768 in 2 places, all below massif's threshold (01.00%)
+ n1: 26067120 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 26067120 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 26067120 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 26067120 0x4010C3: main (test.c++:31)
+ n0: 6133448 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=6
+#-----------
+time=1417619368
+mem_heap_B=157047298
+mem_heap_extra_B=39379750
+mem_stacks_B=0
+heap_tree=detailed
+n4: 157047298 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n3: 41091888 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 20568384 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 20568384 0x4012DA: main (stl_map.h:540)
+  n1: 20522736 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 20522736 0x4012DA: main (stl_map.h:540)
+  n0: 768 in 2 places, all below massif's threshold (01.00%)
+ n1: 29106754 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 29106754 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 29106754 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 29106754 0x4010C3: main (test.c++:31)
+ n0: 6848656 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=7
+#-----------
+time=1719687724
+mem_heap_B=173565268
+mem_heap_extra_B=47822268
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=8
+#-----------
+time=2043747682
+mem_heap_B=191213818
+mem_heap_extra_B=56842638
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=9
+#-----------
+time=2253433845
+mem_heap_B=202603678
+mem_heap_extra_B=62664122
+mem_stacks_B=0
+heap_tree=detailed
+n4: 202603678 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n3: 65388624 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 32708736 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 32708736 0x4012DA: main (stl_map.h:540)
+  n1: 32679120 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 32679120 0x4012DA: main (stl_map.h:540)
+  n0: 768 in 2 places, all below massif's threshold (01.00%)
+ n1: 46316942 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 46316942 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 46316942 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 46316942 0x4010C3: main (test.c++:31)
+ n0: 10898112 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=10
+#-----------
+time=2514443565
+mem_heap_B=216747358
+mem_heap_extra_B=69893114
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=11
+#-----------
+time=2760799948
+mem_heap_B=230068888
+mem_heap_extra_B=76701896
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=12
+#-----------
+time=2936769050
+mem_heap_B=239568470
+mem_heap_extra_B=81557226
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=13
+#-----------
+time=3218319594
+mem_heap_B=254745808
+mem_heap_extra_B=89314544
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=14
+#-----------
+time=3464675532
+mem_heap_B=268002268
+mem_heap_extra_B=96090068
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=15
+#-----------
+time=3711032426
+mem_heap_B=281237840
+mem_heap_extra_B=102854904
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=16
+#-----------
+time=4062969461
+mem_heap_B=300113000
+mem_heap_extra_B=112502208
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=17
+#-----------
+time=4312141840
+mem_heap_B=313457390
+mem_heap_extra_B=119322674
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=18
+#-----------
+time=4474736970
+mem_heap_B=322156250
+mem_heap_extra_B=123768758
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=19
+#-----------
+time=4691529967
+mem_heap_B=333743848
+mem_heap_extra_B=129691320
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=20
+#-----------
+time=4908323508
+mem_heap_B=345319010
+mem_heap_extra_B=135607502
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=21
+#-----------
+time=5070918313
+mem_heap_B=353995288
+mem_heap_extra_B=140042056
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=22
+#-----------
+time=5287711078
+mem_heap_B=365555158
+mem_heap_extra_B=145950434
+mem_stacks_B=0
+heap_tree=detailed
+n4: 365555158 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n3: 152296080 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 76164912 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 76164912 0x4012DA: main (stl_map.h:540)
+  n1: 76130352 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 76130352 0x4012DA: main (stl_map.h:540)
+  n0: 816 in 2 places, all below massif's threshold (01.00%)
+ n1: 107876390 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 107876390 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 107876390 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 107876390 0x4010C3: main (test.c++:31)
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n0: 25382688 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=23
+#-----------
+time=5558703099
+mem_heap_B=379989620
+mem_heap_extra_B=153328036
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=24
+#-----------
+time=5721297396
+mem_heap_B=388644748
+mem_heap_extra_B=157751780
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=25
+#-----------
+time=5938090390
+mem_heap_B=400176538
+mem_heap_extra_B=163645806
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=26
+#-----------
+time=6209081887
+mem_heap_B=414577348
+mem_heap_extra_B=171006220
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=27
+#-----------
+time=6425875471
+mem_heap_B=426088880
+mem_heap_extra_B=176889880
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=28
+#-----------
+time=6751065742
+mem_heap_B=443340538
+mem_heap_extra_B=185707406
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=29
+#-----------
+time=7092562322
+mem_heap_B=461441510
+mem_heap_extra_B=194959002
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=30
+#-----------
+time=7271463519
+mem_heap_B=470915630
+mem_heap_extra_B=199801330
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=31
+#-----------
+time=7450365447
+mem_heap_B=480384710
+mem_heap_extra_B=204641082
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=32
+#-----------
+time=7629267272
+mem_heap_B=489847408
+mem_heap_extra_B=209477584
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=33
+#-----------
+time=7808168549
+mem_heap_B=499306318
+mem_heap_extra_B=214312138
+mem_stacks_B=0
+heap_tree=detailed
+n4: 499306318 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n3: 223630032 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 111838944 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 111838944 0x4012DA: main (stl_map.h:540)
+  n1: 111790272 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 111790272 0x4012DA: main (stl_map.h:540)
+  n0: 816 in 2 places, all below massif's threshold (01.00%)
+ n1: 158404606 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 158404606 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 158404606 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 158404606 0x4010C3: main (test.c++:31)
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n0: 37271680 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=34
+#-----------
+time=7987070352
+mem_heap_B=508760450
+mem_heap_extra_B=219144238
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=35
+#-----------
+time=8255422749
+mem_heap_B=522936898
+mem_heap_extra_B=226389990
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=36
+#-----------
+time=8434324103
+mem_heap_B=532382120
+mem_heap_extra_B=231217536
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=37
+#-----------
+time=8702675905
+mem_heap_B=546543350
+mem_heap_extra_B=238455498
+mem_stacks_B=0
+heap_tree=detailed
+n4: 546543350 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n3: 248823120 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 124412736 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 124412736 0x4012DA: main (stl_map.h:540)
+  n1: 124409568 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 124409568 0x4012DA: main (stl_map.h:540)
+  n0: 816 in 2 places, all below massif's threshold (01.00%)
+ n1: 176249710 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 176249710 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 176249710 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 176249710 0x4010C3: main (test.c++:31)
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n0: 41470520 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=38
+#-----------
+time=8881576867
+mem_heap_B=555978148
+mem_heap_extra_B=243277740
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=39
+#-----------
+time=9060478653
+mem_heap_B=565407080
+mem_heap_extra_B=248096960
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=40
+#-----------
+time=9239380521
+mem_heap_B=574834670
+mem_heap_extra_B=252915506
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=41
+#-----------
+time=9507733198
+mem_heap_B=588968360
+mem_heap_extra_B=260139392
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=42
+#-----------
+time=9776085313
+mem_heap_B=603095128
+mem_heap_extra_B=267359752
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=43
+#-----------
+time=10044437061
+mem_heap_B=617212978
+mem_heap_extra_B=274575542
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=44
+#-----------
+time=10223338510
+mem_heap_B=626623018
+mem_heap_extra_B=279385118
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=45
+#-----------
+time=10491690229
+mem_heap_B=640730420
+mem_heap_extra_B=286595556
+mem_stacks_B=0
+heap_tree=detailed
+n4: 640730420 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n3: 299056224 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 149556240 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 149556240 0x4012DA: main (stl_map.h:540)
+  n1: 149499168 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 149499168 0x4012DA: main (stl_map.h:540)
+  n0: 816 in 2 places, all below massif's threshold (01.00%)
+ n1: 211831492 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 211831492 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 211831492 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 211831492 0x4010C3: main (test.c++:31)
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n0: 49842704 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=46
+#-----------
+time=10670591694
+mem_heap_B=650130658
+mem_heap_extra_B=291400134
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=47
+#-----------
+time=10938944039
+mem_heap_B=664227350
+mem_heap_extra_B=298605098
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=48
+#-----------
+time=11207296189
+mem_heap_B=678316948
+mem_heap_extra_B=305806460
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=49
+#-----------
+time=11386197439
+mem_heap_B=687706288
+mem_heap_extra_B=310605456
+mem_stacks_B=0
+heap_tree=detailed
+n4: 687706288 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n3: 324110016 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 162104496 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 162104496 0x4012DA: main (stl_map.h:540)
+  n1: 162004704 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 162004704 0x4012DA: main (stl_map.h:540)
+  n0: 816 in 2 places, all below massif's threshold (01.00%)
+ n1: 229577928 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 229577928 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 229577928 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 229577928 0x4010C3: main (test.c++:31)
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n0: 54018344 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=50
+#-----------
+time=11532841853
+mem_heap_B=695399840
+mem_heap_extra_B=314537704
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=51
+#-----------
+time=11679486443
+mem_heap_B=703092410
+mem_heap_extra_B=318469462
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=52
+#-----------
+time=11826131027
+mem_heap_B=710782550
+mem_heap_extra_B=322399978
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=53
+#-----------
+time=11972775840
+mem_heap_B=718469368
+mem_heap_extra_B=326328808
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=54
+#-----------
+time=12119420710
+mem_heap_B=726155638
+mem_heap_extra_B=330257346
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=55
+#-----------
+time=12266065749
+mem_heap_B=733838128
+mem_heap_extra_B=334183952
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=56
+#-----------
+time=12412710615
+mem_heap_B=741519620
+mem_heap_extra_B=338110036
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=57
+#-----------
+time=12559355668
+mem_heap_B=749199590
+mem_heap_extra_B=342035354
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=58
+#-----------
+time=12706000604
+mem_heap_B=756876868
+mem_heap_extra_B=345959308
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=59
+#-----------
+time=12852645566
+mem_heap_B=764552158
+mem_heap_extra_B=349882234
+mem_stacks_B=0
+heap_tree=detailed
+n4: 764552158 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n3: 365094480 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 182587392 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 182587392 0x4012DA: main (stl_map.h:540)
+  n1: 182506272 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 182506272 0x4012DA: main (stl_map.h:540)
+  n0: 816 in 2 places, all below massif's threshold (01.00%)
+ n1: 258608590 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 258608590 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 258608590 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 258608590 0x4010C3: main (test.c++:31)
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n0: 60849088 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=60
+#-----------
+time=12999290045
+mem_heap_B=772226360
+mem_heap_extra_B=353804592
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=61
+#-----------
+time=13145934518
+mem_heap_B=779899082
+mem_heap_extra_B=357726222
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=62
+#-----------
+time=13292578986
+mem_heap_B=787569692
+mem_heap_extra_B=361646756
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=63
+#-----------
+time=13439223895
+mem_heap_B=795239630
+mem_heap_extra_B=365566930
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=64
+#-----------
+time=13585868304
+mem_heap_B=802906862
+mem_heap_extra_B=369485754
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=65
+#-----------
+time=13732513360
+mem_heap_B=810570778
+mem_heap_extra_B=373402862
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=66
+#-----------
+time=13879158060
+mem_heap_B=818234008
+mem_heap_extra_B=377319624
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=67
+#-----------
+time=14025802808
+mem_heap_B=825896780
+mem_heap_extra_B=381236140
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=68
+#-----------
+time=14172447877
+mem_heap_B=833557850
+mem_heap_extra_B=385151798
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=69
+#-----------
+time=14319092844
+mem_heap_B=841216940
+mem_heap_extra_B=389066444
+mem_stacks_B=0
+heap_tree=detailed
+n4: 841216940 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n3: 405982368 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 202995600 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 202995600 0x4012DA: main (stl_map.h:540)
+  n1: 202985952 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 202985952 0x4012DA: main (stl_map.h:540)
+  n0: 816 in 2 places, all below massif's threshold (01.00%)
+ n1: 287570844 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 287570844 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 287570844 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 287570844 0x4010C3: main (test.c++:31)
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n0: 67663728 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=70
+#-----------
+time=14465737304
+mem_heap_B=848875318
+mem_heap_extra_B=392980738
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=71
+#-----------
+time=14612382104
+mem_heap_B=856531348
+mem_heap_extra_B=396893820
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=72
+#-----------
+time=14759026929
+mem_heap_B=864186208
+mem_heap_extra_B=400806304
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=73
+#-----------
+time=14905672096
+mem_heap_B=871837460
+mem_heap_extra_B=404716932
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=74
+#-----------
+time=15052316901
+mem_heap_B=879489448
+mem_heap_extra_B=408627960
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=75
+#-----------
+time=15198962027
+mem_heap_B=887139440
+mem_heap_extra_B=412537944
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=76
+#-----------
+time=15345606819
+mem_heap_B=894788638
+mem_heap_extra_B=416447546
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=77
+#-----------
+time=15492251474
+mem_heap_B=902435848
+mem_heap_extra_B=420356120
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=78
+#-----------
+time=15638896239
+mem_heap_B=910081880
+mem_heap_extra_B=424264080
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=79
+#-----------
+time=15785540757
+mem_heap_B=917726570
+mem_heap_extra_B=428171366
+mem_stacks_B=0
+heap_tree=detailed
+n4: 917726570 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n3: 446787504 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 223401504 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 223401504 0x4012DA: main (stl_map.h:540)
+  n1: 223385184 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 223385184 0x4012DA: main (stl_map.h:540)
+  n0: 816 in 2 places, all below massif's threshold (01.00%)
+ n1: 316474482 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 316474482 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 316474482 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 316474482 0x4010C3: main (test.c++:31)
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n0: 74464584 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=80
+#-----------
+time=15932185188
+mem_heap_B=925368872
+mem_heap_extra_B=432077448
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=81
+#-----------
+time=16078829830
+mem_heap_B=933009748
+mem_heap_extra_B=435982780
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=82
+#-----------
+time=16225474268
+mem_heap_B=940648858
+mem_heap_extra_B=439887214
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=83
+#-----------
+time=16372119337
+mem_heap_B=948287338
+mem_heap_extra_B=443791326
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=84
+#-----------
+time=16518763999
+mem_heap_B=955925188
+mem_heap_extra_B=447695116
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=85
+#-----------
+time=16665409061
+mem_heap_B=963560608
+mem_heap_extra_B=451597664
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=86
+#-----------
+time=16812054176
+mem_heap_B=971193328
+mem_heap_extra_B=455498832
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=87
+#-----------
+time=16958698872
+mem_heap_B=978825950
+mem_heap_extra_B=459399938
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=88
+#-----------
+time=16981247205
+mem_heap_B=980000000
+mem_heap_extra_B=460000008
+mem_stacks_B=0
+heap_tree=peak
+n4: 980000000 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n3: 480000000 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 240020592 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 240020592 0x4012DA: main (stl_map.h:540)
+  n1: 239978592 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 239978592 0x4012DA: main (stl_map.h:540)
+  n0: 816 in 2 places, all below massif's threshold (01.00%)
+ n1: 340000000 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 340000000 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 340000000 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 340000000 0x4010C3: main (test.c++:31)
+ n0: 80000000 0x401054: main (new_allocator.h:89)
+ n0: 80000000 0x4010AD: main (test.c++:31)
+#-----------
+snapshot=89
+#-----------
+time=17127891605
+mem_heap_B=956536888
+mem_heap_extra_B=413073784
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=90
+#-----------
+time=17274536005
+mem_heap_B=933073784
+mem_heap_extra_B=366147576
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=91
+#-----------
+time=17421180405
+mem_heap_B=909610680
+mem_heap_extra_B=319221368
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=92
+#-----------
+time=17567824794
+mem_heap_B=751076014
+mem_heap_extra_B=274783898
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=93
+#-----------
+time=17714469208
+mem_heap_B=634330318
+mem_heap_extra_B=232072058
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=94
+#-----------
+time=17861113649
+mem_heap_B=517584376
+mem_heap_extra_B=189360128
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=95
+#-----------
+time=18007758072
+mem_heap_B=400838106
+mem_heap_extra_B=146648078
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=96
+#-----------
+time=18154402475
+mem_heap_B=284091788
+mem_heap_extra_B=103936020
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=97
+#-----------
+time=18301046860
+mem_heap_B=167345238
+mem_heap_extra_B=61223858
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=98
+#-----------
+time=18447691305
+mem_heap_B=50599788
+mem_heap_extra_B=18512108
+mem_stacks_B=0
+heap_tree=detailed
+n3: 50599788 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n3: 29619408 0x401F19: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, std::pair<std::string const, std::string*> const&) (new_allocator.h:89)
+  n1: 14811936 0x40234E: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1230)
+   n0: 14811936 0x4012DA: main (stl_map.h:540)
+  n1: 14807472 0x402236: std::_Rb_tree<std::string, std::pair<std::string const, std::string*>, std::_Select1st<std::pair<std::string const, std::string*> >, std::less<std::string>, std::allocator<std::pair<std::string const, std::string*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::string const, std::string*> >, std::pair<std::string const, std::string*> const&) (stl_tree.h:1233)
+   n0: 14807472 0x4012DA: main (stl_map.h:540)
+  n0: 0 in 2 places, all below massif's threshold (01.00%)
+ n1: 20980380 0x4EC6E97: std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+  n1: 20980380 0x4EC8943: char* std::string::_S_construct<char const*>(char const*, char const*, std::allocator<char> const&, std::forward_iterator_tag) (in /usr/lib/libstdc++.so.6.0.14)
+   n1: 20980380 0x4EC8E30: std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&) (in /usr/lib/libstdc++.so.6.0.14)
+    n0: 20980380 0x4010C3: main (test.c++:31)
+ n0: 0 in 2 places, all below massif's threshold (01.00%)
