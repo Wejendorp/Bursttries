@@ -1,4 +1,4 @@
-#include "include/atomic_ops.h"
+#include "../include/atomic_ops.h"
 #include <iterator>
 #define atomic (volatile AO_t *)
 

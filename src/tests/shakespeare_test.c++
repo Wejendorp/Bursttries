@@ -1,7 +1,7 @@
 /*
 By Jacob Wejendorp 
 */
-#include "include/atomic_ops.h"
+#include "../include/atomic_ops.h"
 #include <fstream>
 #include <iostream>
 #include <string>
