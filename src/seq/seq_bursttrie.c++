@@ -1,13 +1,13 @@
-#include "ts_node.c++"
-#include "ts_bucket.c++"
+#include "seq_node.c++"
+#include "seq_sorted_bucket.c++"
 
-#ifndef __TS_BURSTTRIE
-#define __TS_BURSTTRIE
+#ifndef __SEQ_BURSTTRIE
+#define __SEQ_BURSTTRIE
 
 template<
     typename N // Nodetype
 >
-class ts_bursttrie {
+class seq_bursttrie {
     private:
         N *root;
 
@@ -16,10 +16,10 @@ class ts_bursttrie {
         typedef typename N::value_type  V;
         typedef typename N::bucket_type B;
 
-        explicit ts_bursttrie() {
+        explicit seq_bursttrie() {
             root = new N();
         }
-        ~ts_bursttrie() {
+        ~seq_bursttrie() {
             delete(root);
         }
         void remove(K key) {
