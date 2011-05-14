@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#ifndef __TS_NODE
+#define __TS_NODE
+
 
 #define ts_CHILD_UNUSED 0
 #define ts_CHILD_BUCKET 1
@@ -16,22 +19,34 @@ class ts_node {
         struct child_t {
             char tag; // 
             union {
-                ts_node *n;
+                ts_node<K,V,B> *n;
                 B       *b;
             };
         };
 
         child_t children[NODESIZE];
-        V* v;
+        V v;
 
     public:
+        typedef K key_type;
+        typedef V value_type;
+        typedef B bucket_type;
+
         explicit ts_node() {
             memset(children, 0, sizeof(children));
             v = NULL;
         }
-        ~ts_node() { }
+        ~ts_node() {
+            for(int i = 0; i < NODESIZE; i++) {
+                child_t *c = &children[i];
+                if(c->tag == ts_CHILD_NODE)
+                    delete(c->n);
+                else if(c->tag == ts_CHILD_BUCKET)
+                    delete(c->b);
+            }
+        }
 
-        void insert(K key, V* value) {
+        void insert(K key, V value) {
             // EOS handling
             char c = key[0];
             if(c == '\0') {
@@ -44,12 +59,12 @@ class ts_node {
             } else {
                 if(child.tag == ts_CHILD_UNUSED) {
                     child.tag = ts_CHILD_BUCKET;
-                    child.b = new B;
+                    child.b = new B(1024);
                 }
                 child.b->insert(key.substr(1), value);
             }
         }
-        V* find(K key, V* value) {
+        V find(K key) {
             // EOS handling
             char c = key[0];
             if(c == '\0')
@@ -57,9 +72,9 @@ class ts_node {
 
             child_t child = children[c];
             if(child.tag == ts_CHILD_BUCKET)
-                return child.b->find(key.substr(1), value);
+                return child.b->find(key.substr(1));
             else if (child.tag == ts_CHILD_NODE) {
-                return child.n->find(key.substr(1), value);
+                return child.n->find(key.substr(1));
             }
             return NULL;
         }
@@ -77,3 +92,4 @@ class ts_node {
             }
         }
 };
+#endif

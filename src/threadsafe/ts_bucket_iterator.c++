@@ -10,6 +10,8 @@ class ts_bucket_iterator {
         volatile int *index;
         B *bucket;
 
+        typedef typename B::valuetype T;
+
     public:
 
         ts_bucket_iterator(B *b, int start_index) {
@@ -18,13 +20,13 @@ class ts_bucket_iterator {
             bucket = b;
         }
         bool operator<(ts_bucket_iterator other) {
-            return (AO_load(this->index) < AO_load_dd_acquire_read(other->index));
+            return (AO_load(atomic index) < AO_load_dd_acquire_read(atomic other->index));
         }
         T *operator*() {
-            return AO_load(&(bucket->contents[AO_load_dd_acquire_read(index)]));
+            return AO_load(atomic &(bucket->contents[AO_load_dd_acquire_read(atomic index)]));
         }
         ts_bucket_iterator &operator++() {
-            AO_fetch_and_add1(index);
+            AO_fetch_and_add1(atomic index);
             return *this;
         }
-}
+};
