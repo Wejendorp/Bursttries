@@ -1,5 +1,4 @@
 #include "seq_node.c++"
-#include "seq_sorted_bucket.c++"
 
 #ifndef __SEQ_BURSTTRIE
 #define __SEQ_BURSTTRIE

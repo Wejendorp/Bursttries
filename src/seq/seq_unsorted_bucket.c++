@@ -2,10 +2,10 @@
 #include <vector>
 #include <stdlib.h>
 #include <string.h>
-#include "ts_node.c++"
+#include "seq_node.c++"
 
-#ifndef __SEQ_SORTED_BUCKET
-#define __SEQ_SORTED_BUCKET
+#ifndef __SEQ_UNSORTED_BUCKET
+#define __SEQ_UNSORTED_BUCKET
 
 #define m_pair std::make_pair<K, V>
 
@@ -26,7 +26,7 @@ class seq_unsorted_bucket {
         vector_alloc_t vector_allocator;
 
         typedef typename pairvector::iterator iter;
-        typedef ts_node<K,V,seq_unsorted_bucket<K,V> > node;
+        typedef seq_node<K,V,seq_unsorted_bucket<K,V> > node;
         int capacity;
 
         pairvector *contents;
@@ -45,36 +45,40 @@ class seq_unsorted_bucket {
             vector_allocator.deallocate(contents, 1);
         }
         void insert(K key, V value) {
-            iter it = iter_at(key, value);
-            contents->insert(it, m_pair(key, value));
+            contents->push_back(m_pair(key, value));
         }
         bool remove(K key) {
-            iter it = iter_at(key, NULL);
-            if((*it).first != key)
-                return false;
-            contents->erase(it);
+            iter it;
+            for(it = contents->begin(); it != contents->end(); it++) {
+                if((*it).first == key){
+                    contents->erase(it);
+                    return true;
+                }
+            }
             return true;
         }
         V find(K key) {
-            V val = NULL;
-            iter it = iter_at(key, NULL);
-            if((*it).first == key)
-                val = (*it).second;
-            return val;
+            iter it;
+            for(it = contents->begin(); it != contents->end(); it++) {
+                if((*it).first == key) {
+                 //   std::cout << (*it).first << " == "<< key << std::endl;
+                    return (*it).second;
+                }
+            }
+            std::cout << key << " not found "<< std::endl;
+            return NULL;
+        }
+        bool shouldBurst() {
+            return contents->size() > capacity;
         }
         node *burst() {
             node *newnode = new node();
             iter it;
             for(it = contents->begin(); it != contents->end(); it++) {
                 std::pair<K, V> p = (*it);
-                newnode->insert(p.first.substr(1), p.second);
+                newnode->insert(p.first, p.second);
             }
             return newnode;
-        }
-    private:
-        iter iter_at(K key, V value) {
-            return std::lower_bound(contents->begin(), contents->end(),
-                        m_pair(key, value));
         }
 };
 #endif

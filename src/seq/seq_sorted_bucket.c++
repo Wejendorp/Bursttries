@@ -2,7 +2,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <string.h>
-#include "ts_node.c++"
+#include "seq_node.c++"
 
 #ifndef __SEQ_SORTED_BUCKET
 #define __SEQ_SORTED_BUCKET
@@ -25,7 +25,7 @@ class seq_sorted_bucket {
 
         typedef typename pairvector::iterator iter;
         //typedef seq_sorted_bucket_iterator iterator;
-        typedef ts_node<K,V,seq_sorted_bucket<K,V> > node;
+        typedef seq_node<K,V,seq_sorted_bucket<K,V> > node;
         int capacity;
 
         pairvector *contents;
@@ -71,12 +71,15 @@ class seq_sorted_bucket {
                 val = (*it).second;
             return val;
         }
+        bool shouldBurst() {
+            return contents->size() > capacity;
+        }
         node *burst() {
             node *newnode = new node();
             iter it;
             for(it = contents->begin(); it != contents->end(); it++) {
                 std::pair<K, V> p = (*it);
-                newnode->insert(p.first.substr(1), p.second);
+                newnode->insert(p.first, p.second);
             }
             return newnode;
         }

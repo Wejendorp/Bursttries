@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <iostream>
 #include <string.h>
 #ifndef __SEQ_NODE
 #define __SEQ_NODE
@@ -8,6 +9,7 @@
 #define __NODE_CHILD_BUCKET 1
 #define __NODE_CHILD_NODE   2
 #define NODESIZE 128
+#define BUCKETSIZE 1024
 
 template<
     typename K,
@@ -49,32 +51,43 @@ class seq_node {
         void insert(K key, V value) {
             // EOS handling
             char c = key[0];
-            if(c == '\0') {
+            //if(c == '\0') {
+            if(key.length() == 0) {
                 v = value;
                 return;
             }
-            child_t child = children[c];
-            if(child.tag == __NODE_CHILD_NODE) {
-                child.n->insert(key.substr(1), value);
+            child_t *child = &children[c];
+            if(child->tag == __NODE_CHILD_NODE) {
+                child->n->insert(key.substr(1), value);
             } else {
-                if(child.tag == __NODE_CHILD_UNUSED) {
-                    child.tag = __NODE_CHILD_BUCKET;
-                    child.b = new B(1024);
+                if(child->tag == __NODE_CHILD_UNUSED) {
+                    child->tag = __NODE_CHILD_BUCKET;
+                    child->b = new B(BUCKETSIZE);
                 }
-                child.b->insert(key.substr(1), value);
+                child->b->insert(key.substr(1), value);
+
+                if(child->b->shouldBurst()) {
+                    B *temp = child->b;
+                    child->n = temp->burst();
+                    child->tag = __NODE_CHILD_NODE;
+                    delete(temp);
+                }
             }
         }
         V find(K key) {
             // EOS handling
             char c = key[0];
-            if(c == '\0')
+            //if(c == '\0') {
+            if(key.length() == 0) {
+                std::cout << "in-node return at " << key << std::endl;
                 return v;
+            }
 
-            child_t child = children[c];
-            if(child.tag == __NODE_CHILD_BUCKET)
-                return child.b->find(key.substr(1));
-            else if (child.tag == __NODE_CHILD_NODE) {
-                return child.n->find(key.substr(1));
+            child_t *child = &children[c];
+            if(child->tag == __NODE_CHILD_BUCKET)
+                return child->b->find(key.substr(1));
+            else if (child->tag == __NODE_CHILD_NODE) {
+                return child->n->find(key.substr(1));
             }
             return NULL;
         }
@@ -84,11 +97,11 @@ class seq_node {
                 v = NULL;
                 return;
             }
-            child_t child = children[c];
-            if(child.tag == __NODE_CHILD_BUCKET)
-                return child.b->remove(key.substr(1));
-            else if (child.tag == __NODE_CHILD_NODE) {
-                return child.n->remove(key.substr(1));
+            child_t *child = &children[c];
+            if(child->tag == __NODE_CHILD_BUCKET)
+                return child->b->remove(key.substr(1));
+            else if (child->tag == __NODE_CHILD_NODE) {
+                return child->n->remove(key.substr(1));
             }
         }
 };
