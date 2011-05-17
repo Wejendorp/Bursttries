@@ -1,15 +1,27 @@
+#ifdef TRIE
 #include "../seq/seq_bursttrie.c++"
 #include "../seq/seq_sorted_bucket.c++"
 #include "../seq/seq_unsorted_bucket.c++"
 #include "../seq/seq_btree_bucket.c++"
+#include "../seq/seq_map_bucket.c++"
 #include "../seq/seq_node.c++"
+#endif
+
 #include <map>
 #include <string>
 #include <stdlib.h>
+#include <cstdio> //printf
 #include <gsl/gsl_rng.h> // random number generator
 #include <time.h>
+#include <iostream>
+#include <vector>
 
-#define ITERATIONS 1
+#define ITERATIONS 10
+#ifndef BUCKETTYPE
+#define BUCKETTYPE map
+#endif
+#define STR(x)   #x
+#define SHOW_DEFINE(x) std::printf("%s=%s\n", #x, STR(x))
 
 // Generate a random string with a given alphabet,
 // and place it in the given string
@@ -41,15 +53,26 @@ timespec diff(timespec start, timespec end)
     }
     return temp;
 }
-typedef seq_bursttrie<
-            seq_node<std::string, std::string*, BUCKETTYPE<
-                                            std::string, std::string*>
-                    >
-            > btrie;
+void print_time(timespec t) {
+    long long int nsec = (t.tv_sec*1000000000 + t.tv_nsec)/ITERATIONS;
+    long long int sec = nsec/1000000000;
+    std::printf("%lld:%09lld\n", sec, nsec % 1000000000);
+}
+#ifdef TRIE
+    typedef seq_bursttrie<
+                seq_node<std::string, std::string*, BUCKETTYPE<
+                                                std::string, std::string*>
+                        >
+                > testStruct;
+#else
+    typedef std::map<std::string, std::string *> testStruct;
+#endif
 
 int main() {
-    btrie *t = new btrie();
-    std::map<std::string, std::string*> m;
+    std::cout<<std::endl<<"Starting test:"<<std::endl;
+    SHOW_DEFINE(BUCKETTYPE);
+    SHOW_DEFINE(BUCKETSIZE);
+    testStruct *t = NULL;
     std::vector<std::string*> keys(TESTSIZE);
     // Generate random numbers 
     const gsl_rng_type * T;
@@ -61,7 +84,6 @@ int main() {
     r = gsl_rng_alloc(T);
 
     int len = 10; // (rand() % 12) + 1;
-    char s[10];
     for(int i = 0; i < TESTSIZE; i++) {
         std::string *st = new std::string("aaaaaaaaaa");
         gen_random(st, len, r);
@@ -76,38 +98,44 @@ int main() {
     clock_gettime(CLOCK_REALTIME, &start);
     for(int j = 0; j < ITERATIONS; j++) {
         // Insert into datastructure
+        if(t != NULL) delete(t);
+        t = new testStruct();
+
         for(int i = 0; i < TESTSIZE; i++) {
             std::string *st = keys[i];
-            if(TRIE)
-                t->insert(*st, st);
-            else
-                m[*st] = st;
+            t->insert(std::make_pair<std::string, std::string*>(*st, st));
             //std::cout << "inserting " << *st << " == " << st <<std::endl;
         }
 
     }
     clock_gettime(CLOCK_REALTIME, &stop);
-    temp.tv_sec += diff(start, stop).tv_sec;
-    temp.tv_nsec += diff(start, stop).tv_nsec;
     std::cout<<"Inserted "<<TESTSIZE<<" string:pointer pairs in an average of ";
-    std::cout <<temp.tv_sec/ITERATIONS<<":"<<temp.tv_nsec/ITERATIONS<<std::endl;
+    temp.tv_sec  = diff(start, stop).tv_sec;
+    temp.tv_nsec = diff(start, stop).tv_nsec;
+    print_time(temp);
 
     clock_gettime(CLOCK_REALTIME, &start);
     // Search in datastructure
-    for(int i = 0; i < TESTSIZE; i++) {
-       //if(SEARCH) {
-            if (TRIE && keys[i] != t->find(*(keys[i]))) {
-               std::cout << "Mismatched search for "<< *(keys[i])<<std::endl;
-               std::cout << "Expected " << keys[i] << std::endl;
-               std::cout << "got " << t->find(*(keys[i])) << std::endl;
-            } else if(!TRIE && keys[i] != m.find(*(keys[i]))->second) {
-                std::cout << "Fix the test!";
+    for(int j = 0; j < ITERATIONS; j++) {
+        for(int i = 0; i < TESTSIZE; i++) {
+#ifdef TRIE
+            std::string *res = t->find(*(keys[i]));
+#else
+            std::string * res = (*t->find(*(keys[i]))).second;
+#endif
+            if (keys[i] != res) {
+                std::cout << "Mismatched search for "<< *(keys[i])<<std::endl;
+                //std::cout << "Expected " << keys[i] << std::endl;
+                //std::cout << "got " << t->find(*(keys[i])) << std::endl;
             }
-       //}
+        }
     }
     clock_gettime(CLOCK_REALTIME, &stop);
-    std::cout<<"Searched "<<TESTSIZE<<" string:pointer pairs in ";
-    std::cout <<diff(start,stop).tv_sec<<":"<<diff(start,stop).tv_nsec<<std::endl;
+    std::cout<<"Searched "<<TESTSIZE<<" string:pointer pairs in an average of ";
+    temp.tv_sec  = diff(start, stop).tv_sec;
+    temp.tv_nsec = diff(start, stop).tv_nsec;
+    print_time(temp);
+
     for(int i = 0; i < TESTSIZE; i++) {
        delete(keys[i]);
     }

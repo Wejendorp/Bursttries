@@ -14,6 +14,7 @@ class seq_bursttrie {
         typedef typename N::key_type    K;
         typedef typename N::value_type  V;
         typedef typename N::bucket_type B;
+        typedef typename std::pair<K,V> pair;
 
         explicit seq_bursttrie() {
             root = new N();
@@ -27,8 +28,8 @@ class seq_bursttrie {
         V find(K key) {
             return root->find(key);
         }
-        void insert(K key, V value) {
-            return root->insert(key, value);
+        void insert(pair p) {
+            return root->insert(p);
         }
 };
 

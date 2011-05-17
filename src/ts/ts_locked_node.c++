@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <iostream>
 #include <string.h>
-#ifndef __SEQ_NODE
-#define __SEQ_NODE
+#include <pthread.h>
+#ifndef __TS_NODE
+#define __TS_NODE
 
 
 #define __NODE_CHILD_UNUSED 0
@@ -15,12 +16,12 @@ template<
     typename V,
     typename B
 >
-class seq_node {
+class ts_locked_node {
     private:
         struct child_t {
             char tag; // 
             union {
-                seq_node<K,V,B> *n;
+                ts_locked_node<K,V,B> *n;
                 B       *b;
             };
         };
@@ -28,17 +29,20 @@ class seq_node {
         child_t children[NODESIZE];
         V v;
 
+        pthread_rwlock_t lock;
+
     public:
         typedef K key_type;
         typedef V value_type;
         typedef B bucket_type;
         typedef typename std::pair<K,V> pair;
 
-        explicit seq_node() {
+        explicit ts_locked_node() {
             memset(children, 0, sizeof(children));
             v = NULL;
+            pthread_rwlock_init(&lock, NULL);
         }
-        ~seq_node() {
+        ~ts_locked_node() {
             for(int i = 0; i < NODESIZE; i++) {
                 child_t *c = &children[i];
                 if(c->tag == __NODE_CHILD_NODE)
@@ -46,50 +50,56 @@ class seq_node {
                 else if(c->tag == __NODE_CHILD_BUCKET)
                     delete(c->b);
             }
+            pthread_rwlock_destroy(&lock);
         }
         void insert(pair p) {
             insert(p.first, p.second);
         }
         void insert(K key, V value) {
+            pthread_rwlock_wrlock(&lock);
             // EOS handling
             char c = key[0];
-            //if(c == '\0') {
             if(key.length() == 0) {
                 v = value;
-                return;
-            }
-            child_t *child = &children[c];
-            if(child->tag == __NODE_CHILD_NODE) {
-                child->n->insert(key.substr(1), value);
             } else {
-                if(child->tag == __NODE_CHILD_UNUSED) {
-                    child->tag = __NODE_CHILD_BUCKET;
-                    child->b = new B(BUCKETSIZE);
-                }
-                child->b->insert(key.substr(1), value);
+                child_t *child = &children[c];
+                if(child->tag == __NODE_CHILD_NODE) {
+                    child->n->insert(key.substr(1), value);
+                } else {
+                    if(child->tag == __NODE_CHILD_UNUSED) {
+                        child->tag = __NODE_CHILD_BUCKET;
+                        child->b = new B(BUCKETSIZE);
+                    }
+                    child->b->insert(key.substr(1), value);
 
-                if(child->b->shouldBurst()) {
-                    B *temp = child->b;
-                    child->n = temp->burst();
-                    child->tag = __NODE_CHILD_NODE;
-                    delete(temp);
+                    if(child->b->shouldBurst()) {
+                        B *temp = child->b;
+                        child->n = temp->burst();
+                        child->tag = __NODE_CHILD_NODE;
+                        delete(temp);
+                    }
                 }
             }
+            pthread_rwlock_unlock(&lock);
         }
         V find(K key) {
+            V ret = NULL;
+            pthread_rwlock_rdlock(&lock);
             // EOS handling
             char c = key[0];
             //if(c == '\0') {
             if(key.length() == 0) {
                 //std::cout << "in-node return at " << key << std::endl;
+                pthread_rwlock_unlock(&lock);
                 return v;
             }
+            child_t child = children[c];
+            pthread_rwlock_unlock(&lock);
 
-            child_t *child = &children[c];
-            if(child->tag == __NODE_CHILD_BUCKET)
-                return child->b->find(key.substr(1));
-            else if (child->tag == __NODE_CHILD_NODE) {
-                return child->n->find(key.substr(1));
+            if(child.tag == __NODE_CHILD_BUCKET)
+                return child.b->find(key.substr(1));
+            else if (child.tag == __NODE_CHILD_NODE) {
+                return child.n->find(key.substr(1));
             }
             return NULL;
         }

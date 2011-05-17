@@ -2,10 +2,10 @@
 #include <vector>
 #include <stdlib.h>
 #include <string.h>
-#include "seq_node.c++"
-
-#ifndef __SEQ_BTREE_BUCKET
-#define __SEQ_BTREE_BUCKET
+#include "ts_locked_node.c++"
+#include <pthread.h>
+#ifndef __TS_BTREE_BUCKET
+#define __TS_BTREE_BUCKET
 
 template<
     typename K,
@@ -54,42 +54,52 @@ template<
     typename K,
     typename V
 >
-class seq_btree_bucket {
+class ts_btree_bucket {
     private:
-        typedef seq_node<K,V,seq_btree_bucket<K,V> > node;
-        int capacity, size;
+        typedef ts_locked_node<K,V,ts_btree_bucket<K,V> > node;
+        volatile int capacity, size;
         btree_node<K,V> * root;
+        pthread_rwlock_t rwlock;
 
     public:
         typedef V value_type;
         typedef K key_type;
 
-        explicit seq_btree_bucket(int cap) {
+        explicit ts_btree_bucket(int cap) {
             capacity = cap;
             root = NULL;
             size = 0;
+            pthread_rwlock_init(&rwlock, NULL);
         }
-        ~seq_btree_bucket() {
+        ~ts_btree_bucket() {
             if(root) delete(root);
+            pthread_rwlock_destroy(&rwlock);
         }
         void insert(K k, V v) {
+            pthread_rwlock_wrlock(&rwlock);
             size++;
             if(root == NULL) root = new btree_node<K,V>(k, v);
             else root->insert(k,v);
+            pthread_rwlock_unlock(&rwlock);
         }
         bool remove(K key) {
             return false;
         }
         V find(K key) {
-            if(root == NULL) return NULL;
-            return root->find(key);
+            V ret = NULL;
+            pthread_rwlock_rdlock(&rwlock);
+            if(root != NULL) ret = root->find(key);
+            pthread_rwlock_unlock(&rwlock);
+            return ret;
         }
         bool shouldBurst() {
             return size > capacity;
         }
         node *burst() {
+            pthread_rwlock_wrlock(&rwlock);
             node *newnode = new node();
             inOrderBurst(root, newnode);
+            pthread_rwlock_unlock(&rwlock);
             return newnode;
         }
     private:
