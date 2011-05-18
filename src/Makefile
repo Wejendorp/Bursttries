@@ -74,4 +74,4 @@ clean:
 	mkdir tests/bin
 
 thread_test: tests/shakespeare_ts_test.c++
-	$(CC) $(CFLAGS) -DBUCKETSIZE=64 tests/shakespeare_ts_test.c++ -o tests/bin/thread_test
+	$(CC) $(CFLAGS) -DBUCKETSIZE=32 tests/shakespeare_ts_test.c++ -o tests/bin/thread_test

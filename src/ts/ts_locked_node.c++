@@ -83,7 +83,6 @@ class ts_locked_node {
             pthread_rwlock_unlock(&lock);
         }
         V find(K key) {
-            V ret = NULL;
             pthread_rwlock_rdlock(&lock);
             // EOS handling
             char c = key[0];

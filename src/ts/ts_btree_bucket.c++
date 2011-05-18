@@ -27,17 +27,19 @@ class btree_node {
             delete(left);
             delete(right);
         }
-        void insert(K k, V value) {
-            if(k <= key) {
+        void insert(K k, V v) {
+            if(k == key)
+                value = v;
+            else if(k < key) {
                 if(left == NULL)
-                    left = new btree_node(k, value);
+                    left = new btree_node(k, v);
                 else
-                    left->insert(k, value);
+                    left->insert(k, v);
             }
             else if(right == NULL)
-                right = new btree_node(k, value);
+                right = new btree_node(k, v);
             else
-                right->insert(k, value);
+                right->insert(k, v);
         }
         V find(K k) {
             if(k == key) return value;
@@ -93,7 +95,7 @@ class ts_btree_bucket {
             return ret;
         }
         bool shouldBurst() {
-            return size > capacity;
+            return (size > capacity);
         }
         node *burst() {
             pthread_rwlock_wrlock(&rwlock);
