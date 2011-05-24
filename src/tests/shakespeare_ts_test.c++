@@ -4,7 +4,7 @@ By Jacob Wejendorp
 #include "../ts/ts_bursttrie.c++"
 #include "../ts/ts_locked_node.c++"
 #include "../ts/ts_btree_bucket.c++"
-#include "../include/atomic_ops.h"
+#include "crewVector.c++"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -13,34 +13,8 @@ By Jacob Wejendorp
 
 #include <stdlib.h>
 #include <pthread.h> // Threading
-#define NUM_THREADS 1024
-#define atomic (volatile AO_t *)
+//#define NUM_THREADS 1024
 
-template<
-    typename T
->
-class crewVector {
-    private:
-        int current;
-    public:
-        std::vector<T> *v;
-        crewVector() {
-            current = 0;
-            v = new std::vector<T>();
-        }
-        ~crewVector() {
-            delete(v);
-        }
-        void reset() {
-            current = 0;
-        }
-        T getNext() {
-            volatile int n = AO_fetch_and_add1(atomic &current);
-            if(n < v->size())
-                return (*v)[n];
-            return NULL;
-        }
-};
 typedef ts_bursttrie<ts_locked_node<std::string,
                          std::string*,
                          ts_btree_bucket<std::string, std::string*>

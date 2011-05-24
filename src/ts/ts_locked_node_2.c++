@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string.h>
 #include <pthread.h>
+#include "../include/atomic_ops.h"
+
 #ifndef __TS_NODE
 #define __TS_NODE
 
@@ -10,6 +12,7 @@
 #define __NODE_CHILD_BUCKET 1
 #define __NODE_CHILD_NODE   2
 #define NODESIZE 128
+#define atomic (volatile AO_t *)
 
 template<
     typename K,
@@ -18,17 +21,17 @@ template<
 >
 class ts_locked_node {
     private:
+        typedef ts_locked_node<K,V,B> node;
+
         struct child_t {
             char tag; // 
             union {
-                ts_locked_node<K,V,B> *n;
+                node *n;
                 B       *b;
             };
         };
-
         child_t children[NODESIZE];
         V v;
-
         pthread_rwlock_t lock;
 
     public:
@@ -55,41 +58,45 @@ class ts_locked_node {
         void insert(pair p) {
             insert(p.first, p.second, NULL);
         }
-        void insert(K key, V value) {
-            insert(key, value, NULL);
-        }
-        void insert(K key, V value, void* temp) {
+        void insert(K key, V value, pthread_rwlock_t *oldLock) {
             pthread_rwlock_wrlock(&lock);
+            if(oldLock) pthread_rwlock_unlock(oldLock);
             // EOS handling
             char c = key[0];
             if(key.length() == 0) {
-                v = value;
+                AO_store_release(atomic &v, (size_t)value);
+                pthread_rwlock_unlock(&lock);
             } else {
                 child_t *child = &children[c];
+                node * n = child->n;
+                B *b = child->b;
                 if(child->tag == __NODE_CHILD_NODE) {
-                    child->n->insert(key.substr(1), value);
+                    n->insert(key.substr(1), value, &lock);
                 } else {
                     if(child->tag == __NODE_CHILD_UNUSED) {
                         child->tag = __NODE_CHILD_BUCKET;
                         child->b = new B(BUCKETSIZE);
+                        b = child->b;
                     }
-                    child->b->insert(key.substr(1), value);
-
                     if(child->b->shouldBurst()) {
                         B *temp = child->b;
                         child->n = temp->burst();
+                        n = child->n;
                         child->tag = __NODE_CHILD_NODE;
                         delete(temp);
+                        n->insert(key.substr(1), value, &lock);
+                    } else {
+                        b->insert(key.substr(1), value, &lock);
                     }
                 }
             }
-            pthread_rwlock_unlock(&lock);
-        }
-        V find(K key, void* t) {
-            return find(key);
         }
         V find(K key) {
+            return find(K key, NULL);
+        }
+        V find(K key, pthread_rwlock_t *oldLock) {
             pthread_rwlock_rdlock(&lock);
+            if(oldLock) pthread_rwlock_unlock(oldLock);
             // EOS handling
             char c = key[0];
             //if(c == '\0') {
@@ -99,12 +106,11 @@ class ts_locked_node {
                 return v;
             }
             child_t child = children[c];
-            pthread_rwlock_unlock(&lock);
 
             if(child.tag == __NODE_CHILD_BUCKET)
-                return child.b->find(key.substr(1));
+                return child.b->find(key.substr(1), &lock);
             else if (child.tag == __NODE_CHILD_NODE) {
-                return child.n->find(key.substr(1));
+                return child.n->find(key.substr(1), &lock);
             }
             return NULL;
         }

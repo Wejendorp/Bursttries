@@ -2,7 +2,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <string.h>
-#include "ts_locked_node.c++"
+#include "ts_locked_node_2.c++"
 #include <pthread.h>
 #ifndef __TS_BTREE_BUCKET
 #define __TS_BTREE_BUCKET
@@ -78,7 +78,11 @@ class ts_btree_bucket {
             pthread_rwlock_destroy(&rwlock);
         }
         void insert(K k, V v) {
+            insert(k, v, NULL);
+        }
+        void insert(K k, V v, pthread_rwlock_t *oldLock) {
             pthread_rwlock_wrlock(&rwlock);
+            if(oldLock) pthread_rwlock_unlock(oldLock);
             size++;
             if(root == NULL) root = new btree_node<K,V>(k, v);
             else root->insert(k,v);
@@ -88,8 +92,12 @@ class ts_btree_bucket {
             return false;
         }
         V find(K key) {
+            return find(key, NULL);
+        }
+        V find(K key, pthread_rwlock_t *oldLock) {
             V ret = NULL;
             pthread_rwlock_rdlock(&rwlock);
+            if(oldLock) pthread_rwlock_unlock(oldLock);
             if(root != NULL) ret = root->find(key);
             pthread_rwlock_unlock(&rwlock);
             return ret;
@@ -108,7 +116,7 @@ class ts_btree_bucket {
         void inOrderBurst(btree_node<K,V> *bn, node *nn) {
             if(bn == NULL) return;
             inOrderBurst(bn->left, nn);
-            nn->insert(bn->key, bn->value);
+            nn->insert(bn->key, bn->value, NULL);
             inOrderBurst(bn->right, nn);
         }
 };
