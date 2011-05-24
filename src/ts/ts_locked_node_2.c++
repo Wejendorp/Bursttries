@@ -92,7 +92,7 @@ class ts_locked_node {
             }
         }
         V find(K key) {
-            return find(K key, NULL);
+            return find(key, NULL);
         }
         V find(K key, pthread_rwlock_t *oldLock) {
             pthread_rwlock_rdlock(&lock);
