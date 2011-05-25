@@ -20,7 +20,7 @@ class crewVector {
             current = 0;
         }
         T getNext() {
-            volatile int n = AO_fetch_and_add1(atomic &current);
+            volatile unsigned int n = AO_fetch_and_add1(atomic &current);
             if(n < v->size())
                 return (*v)[n];
             return NULL;

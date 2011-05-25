@@ -2,7 +2,7 @@
 By Jacob Wejendorp 
 */
 #include "../ts/ts_bursttrie.c++"
-#include "../ts/ts_locked_node.c++"
+#include "../ts/ts_locked_node_2.c++"
 #include "../ts/ts_btree_bucket.c++"
 #include "crewVector.c++"
 #include <fstream>
@@ -57,14 +57,12 @@ int main(int argc, char *argv[]) {
 
     data.v = new strVector();
     data.t = new trie();
-    data.m = new map();
 
     std::string word;
     while(fin.good()) {
         fin >> word;
         std::string *st = new std::string(word);
         data.v->v->push_back(st);
-        (*data.m)[*st] = st;
     }
 
     // Insert the elements in parallel
@@ -85,6 +83,5 @@ int main(int argc, char *argv[]) {
 
     delete(data.v);
     delete(data.t);
-    delete(data.m);
     return 0;
 }

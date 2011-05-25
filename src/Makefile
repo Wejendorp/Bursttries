@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-g -O2 -DTESTSIZE=1000000 -lgsl -lgslcblas -lrt
+CFLAGS=-g -O2 -DTESTSIZE=1000000 -lgsl -lgslcblas -lrt -Wall
 GSL_RNG_SEED=`date +'%y%m%d%H%M%S'`
 GSL_RNG_TYPE=uni
 ENV=
@@ -73,9 +73,18 @@ clean:
 	rm -r -f tests/bin/
 	mkdir tests/bin
 
-thread_test: tests/shakespeare_ts_test.c++
-	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=1 tests/shakespeare_ts_test.c++ -o tests/bin/thread_test_1
-	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=2 tests/shakespeare_ts_test.c++ -o tests/bin/thread_test_2
-	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=4 tests/shakespeare_ts_test.c++ -o tests/bin/thread_test_4
-	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=8 tests/shakespeare_ts_test.c++ -o tests/bin/thread_test_8
-	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=32 tests/shakespeare_ts_test.c++ -o tests/bin/thread_test_32
+shakespeare_ts: tests/shakespeare_ts_test.c++
+	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=1 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_1
+	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=2 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_2
+	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=4 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_4
+	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=8 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_8
+	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=32 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_32
+	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=1024 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_1024
+
+thread_test: tests/ts_test.c++
+	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=1 tests/ts_test.c++ -o tests/bin/thread_test_1
+	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=2 tests/ts_test.c++ -o tests/bin/thread_test_2
+	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=4 tests/ts_test.c++ -o tests/bin/thread_test_4
+	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=8 tests/ts_test.c++ -o tests/bin/thread_test_8
+	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=32 tests/ts_test.c++ -o tests/bin/thread_test_32
+	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=1024 tests/ts_test.c++ -o tests/bin/thread_test_1024

@@ -109,6 +109,7 @@ class ts_btree_bucket {
             pthread_rwlock_wrlock(&rwlock);
             node *newnode = new node();
             inOrderBurst(root, newnode);
+            size = 0;
             pthread_rwlock_unlock(&rwlock);
             return newnode;
         }
