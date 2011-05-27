@@ -1,8 +1,10 @@
+DIR=$(shell pwd)
 CC=g++
-CFLAGS=-g -O2 -DTESTSIZE=1000000 -lgsl -lgslcblas -lrt -Wall
+CFLAGS=-g -I$(DIR)/include -L$(DIR)/lib -O2 -DTESTSIZE=7500000 -lgsl -lgslcblas -lrt -Wall
 GSL_RNG_SEED=`date +'%y%m%d%H%M%S'`
 GSL_RNG_TYPE=uni
 ENV=
+LD_LIBRARY_PATH=$(DIR)/lib
 
 tests: test_map test_trie 
 #gsl_test thread_test
@@ -16,7 +18,7 @@ test_trie_unsorted: tests/seq_test.c++
 	$(CC) $(CFLAGS) tests/seq_test.c++ -DTRIE -DBUCKETTYPE=seq_unsorted_bucket\
 					-DBUCKETSIZE=32 -o tests/bin/test_trie_unsorted_32
 	$(CC) $(CFLAGS) tests/seq_test.c++ -DTRIE -DBUCKETTYPE=seq_unsorted_bucket\
-					-DBUCKETSIZE=64 -o tests/bin/test_trie_unsorted_64
+					-DBUCKETSIZE=32 -o tests/bin/test_trie_unsorted_64
 	$(CC) $(CFLAGS) tests/seq_test.c++ -DTRIE -DBUCKETTYPE=seq_unsorted_bucket\
 					-DBUCKETSIZE=128 -o tests/bin/test_trie_unsorted_128
 	$(CC) $(CFLAGS) tests/seq_test.c++ -DTRIE -DBUCKETTYPE=seq_unsorted_bucket\
@@ -47,7 +49,7 @@ test_trie_btree: tests/seq_test.c++
 
 test_trie_sorted: tests/seq_test.c++
 	$(CC) $(CFLAGS) tests/seq_test.c++ -DTRIE -DBUCKETTYPE=seq_sorted_bucket\
-					-DBUCKETSIZE=64 -o tests/bin/test_trie_sorted_64
+					-DBUCKETSIZE=32 -o tests/bin/test_trie_sorted_64
 	$(CC) $(CFLAGS) tests/seq_test.c++ -DTRIE -DBUCKETTYPE=seq_sorted_bucket\
 					-DBUCKETSIZE=128 -o tests/bin/test_trie_sorted_128
 	$(CC) $(CFLAGS) tests/seq_test.c++ -DTRIE -DBUCKETTYPE=seq_sorted_bucket\
@@ -69,9 +71,6 @@ time: tests
 	$(ENV) time -v ./tests/bin/test_trie_btree 2>> logs/time.log
 	cat logs/time.log | most
 
-clean:
-	rm -r -f tests/bin/
-	mkdir tests/bin
 
 shakespeare_ts: tests/shakespeare_ts_test.c++
 	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=1 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_1
@@ -81,10 +80,23 @@ shakespeare_ts: tests/shakespeare_ts_test.c++
 	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=32 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_32
 	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=1024 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_1024
 
+ttestflags=-DBUCKETSIZE=32 -DBUCKETTYPE=ts_btree_bucket tests/ts_test.c++
 thread_test: tests/ts_test.c++
-	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=1 tests/ts_test.c++ -o tests/bin/thread_test_1
-	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=2 tests/ts_test.c++ -o tests/bin/thread_test_2
-	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=4 tests/ts_test.c++ -o tests/bin/thread_test_4
-	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=8 tests/ts_test.c++ -o tests/bin/thread_test_8
-	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=32 tests/ts_test.c++ -o tests/bin/thread_test_32
-	$(CC) $(CFLAGS) -DBUCKETSIZE=64 -DBUCKETTYPE=ts_btree_bucket -DNUM_THREADS=1024 tests/ts_test.c++ -o tests/bin/thread_test_1024
+	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=1 -o tests/bin/thread_test_1
+	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=2 -o tests/bin/thread_test_2
+	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=4 -o tests/bin/thread_test_4
+	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=8 -o tests/bin/thread_test_8
+	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=16 -o tests/bin/thread_test_16
+	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=32 -o tests/bin/thread_test_32
+
+thread_test_run: thread_test
+	./tests/bin/thread_test_1
+	./tests/bin/thread_test_2
+	./tests/bin/thread_test_4
+	./tests/bin/thread_test_8
+	./tests/bin/thread_test_16
+	./tests/bin/thread_test_32
+
+clean:
+	rm -r -f tests/bin/
+	mkdir tests/bin

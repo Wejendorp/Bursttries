@@ -1,11 +1,12 @@
-#ifdef TRIE
+//#include "../ts/ts_lockfree_node.c++"
+int *BUCKET_COUNT = new int(0);
+int *NODE_COUNT = new int(0);
 #include "../ts/ts_bursttrie.c++"
-#include "../ts/ts_sorted_bucket.c++"
-#include "../ts/ts_unsorted_bucket.c++"
-#include "../ts/ts_btree_bucket.c++"
-#include "../ts/ts_map_bucket.c++"
 #include "../ts/ts_locked_node_2.c++"
-#endif
+#include "../ts/ts_btree_bucket.c++"
+//#include "../ts/ts_map_bucket.c++"
+//#include "../ts/ts_sorted_bucket.c++"
+//#include "../ts/ts_unsorted_bucket.c++"
 
 #include "crewVector.c++"
 #include "test_thread.c++"
@@ -19,9 +20,6 @@
 #include <iostream>
 
 #define ITERATIONS 10
-#ifndef BUCKETTYPE
-#define BUCKETTYPE map
-#endif
 #define STR(x)   #x
 #define SHOW_DEFINE(x) std::printf("%s=%s\n", #x, STR(x))
 
@@ -29,13 +27,13 @@
 // and place it in the given string
 //
 void gen_random(std::string *s, const int len, gsl_rng *r) {
-    static const char alphanum[] =
+    /*static const char alphanum[] =
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
+        "abcdefghijklmnopqrstuvwxyz"; */
     for(int i = 0; i < len; i++) {
-        int u = gsl_rng_uniform_int(r, sizeof(alphanum));
-        s->replace(i, 1,1, alphanum[u]);
+        char u = gsl_rng_uniform_int(r, 126) + 1;
+        s->replace(i, 1,1, (char)u); //alphanum[u]);
     }
 }
 
@@ -63,35 +61,33 @@ timespec startTimer() {
 void stopTimer(timespec start) {
     timespec stop;
     clock_gettime(CLOCK_REALTIME, &stop);
-    long long int nsec = (diff(start, stop).tv_sec*1000000000 + diff(start, stop).tv_nsec)/ITERATIONS;
+    long long int nsec = (diff(start, stop).tv_sec*1000000000 + diff(start, stop).tv_nsec)/(ITERATIONS);
     long long int sec = nsec/1000000000;
     std::printf("%lld:%09lld\n", sec, nsec % 1000000000);
 
 }
-#ifdef TRIE
-    typedef ts_bursttrie<
-                ts_locked_node<std::string, std::string*, BUCKETTYPE<
-                                                std::string, std::string*>
-                        >
-                > testStruct;
-#else
-    typedef std::map<std::string, std::string *> testStruct;
-#endif
+
+typedef ts_bursttrie<
+            ts_locked_node<std::string, std::string*, BUCKETTYPE >
+            > testStruct;
 typedef crewVector<std::string*> strVector;
 
 int main() {
     test_thread<strVector, testStruct>* threads[NUM_THREADS];
     strVector  *v = new strVector();
-    testStruct *t = new testStruct();
+    testStruct *t = NULL;
+    testStruct **tp = &t;
     for(int i = 0; i < NUM_THREADS; i++) {
-        threads[i] = new test_thread<strVector, testStruct>(v, t);
+        threads[i] = new test_thread<strVector, testStruct>(v, tp);
     }
 
     std::cout<<std::endl<<"Starting test:"<<std::endl;
+    SHOW_DEFINE(TESTSIZE);
+    SHOW_DEFINE(ITERATIONS);
+    SHOW_DEFINE(NUM_THREADS);
+
     SHOW_DEFINE(BUCKETTYPE);
     SHOW_DEFINE(BUCKETSIZE);
-    SHOW_DEFINE(NUM_THREADS);
-    SHOW_DEFINE(ITERATIONS);
 
     // Generate random numbers 
     const gsl_rng_type * T;
@@ -113,6 +109,10 @@ int main() {
     timespec start = startTimer();
     for(int i = 0; i < ITERATIONS; i++) {
         v->reset();
+        delete(t);
+        t = new testStruct();
+        *BUCKET_COUNT = 0;
+        *NODE_COUNT = 0;
         // Create writer-threads
         for(int j = 0; j < NUM_THREADS; j++) {
             threads[j]->write();
@@ -124,6 +124,8 @@ int main() {
     }
     std::cout << "Inserted " << TESTSIZE << " entries in an average of ";
     stopTimer(start);
+    std::cout << "Created "<<*NODE_COUNT << " nodes!"<<std::endl;
+    std::cout << "Created "<<*BUCKET_COUNT << " buckets!"<<std::endl;
 
 
     start = startTimer();
@@ -150,9 +152,11 @@ int main() {
        delete((*v->v)[i]);
     }
     for(int i = 0; i < NUM_THREADS; i++) {
-        threads[i] = new test_thread<strVector, testStruct>(v, t);
+       delete( threads[i] ) ;
     }
     delete(v);
     delete(t);
+    delete(BUCKET_COUNT);
+    delete(NODE_COUNT);
     return 0;
 }
