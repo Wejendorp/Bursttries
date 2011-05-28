@@ -1,23 +1,28 @@
-#include <utility> // pair
-
 #ifndef __TS_BURSTTRIE
 #define __TS_BURSTTRIE
 
+#include <utility> // pair
+// Include all accessible containers here
+#include "ts_locked_node_2.c++"
+#include "ts_btree_bucket.c++"
+#include "ts_map_bucket.c++"
+
 template<
-    typename N // Nodetype
+    typename K,
+    typename V,
+    template<class> class B,
+    template<class, class, template<class> class> class N
 >
 class ts_bursttrie {
     private:
-        N *root;
+        typedef N<K, V, B> node;
+        typedef B<node> bucket;
+        typedef std::pair<K,V> pair;
+        node *root;
 
     public:
-        typedef typename N::key_type    K;
-        typedef typename N::value_type  V;
-        typedef typename N::bucket_type B;
-        typedef typename std::pair<K,V> pair;
-
         explicit ts_bursttrie() {
-            root = new N();
+            root = new node();
         }
         ~ts_bursttrie() {
             delete(root);

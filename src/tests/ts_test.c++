@@ -1,12 +1,6 @@
-//#include "../ts/ts_lockfree_node.c++"
 int *BUCKET_COUNT = new int(0);
 int *NODE_COUNT = new int(0);
 #include "../ts/ts_bursttrie.c++"
-#include "../ts/ts_locked_node_2.c++"
-#include "../ts/ts_btree_bucket.c++"
-//#include "../ts/ts_map_bucket.c++"
-//#include "../ts/ts_sorted_bucket.c++"
-//#include "../ts/ts_unsorted_bucket.c++"
 
 #include "crewVector.c++"
 #include "test_thread.c++"
@@ -66,10 +60,10 @@ void stopTimer(timespec start) {
     std::printf("%lld:%09lld\n", sec, nsec % 1000000000);
 
 }
-
-typedef ts_bursttrie<
-            ts_locked_node<std::string, std::string*, BUCKETTYPE >
-            > testStruct;
+typedef ts_bursttrie<std::string, std::string*, BUCKETTYPE, ts_locked_node> testStruct;
+//typedef ts_bursttrie<
+//            ts_locked_node<std::string, std::string*, BUCKETTYPE >
+//            > testStruct;
 typedef crewVector<std::string*> strVector;
 
 int main() {

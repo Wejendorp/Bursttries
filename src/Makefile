@@ -80,22 +80,39 @@ shakespeare_ts: tests/shakespeare_ts_test.c++
 	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=32 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_32
 	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=1024 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_1024
 
-ttestflags=-DBUCKETSIZE=32 -DBUCKETTYPE=ts_btree_bucket tests/ts_test.c++
-thread_test: tests/ts_test.c++
-	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=1 -o tests/bin/thread_test_1
-	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=2 -o tests/bin/thread_test_2
-	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=4 -o tests/bin/thread_test_4
-	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=8 -o tests/bin/thread_test_8
-	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=16 -o tests/bin/thread_test_16
-	$(CC) $(CFLAGS) $(ttestflags) -DNUM_THREADS=32 -o tests/bin/thread_test_32
+ttest_btree_flags=-DBUCKETSIZE=32 -DBUCKETTYPE=ts_btree_bucket tests/ts_test.c++
+thread_test_btree: tests/ts_test.c++
+	$(CC) $(CFLAGS) $(ttest_btree_flags) -DNUM_THREADS=1 -o tests/bin/thread_test_btree_1
+	$(CC) $(CFLAGS) $(ttest_btree_flags) -DNUM_THREADS=2 -o tests/bin/thread_test_btree_2
+	$(CC) $(CFLAGS) $(ttest_btree_flags) -DNUM_THREADS=4 -o tests/bin/thread_test_btree_4
+	$(CC) $(CFLAGS) $(ttest_btree_flags) -DNUM_THREADS=8 -o tests/bin/thread_test_btree_8
+	$(CC) $(CFLAGS) $(ttest_btree_flags) -DNUM_THREADS=16 -o tests/bin/thread_test_btree_16
+	$(CC) $(CFLAGS) $(ttest_btree_flags) -DNUM_THREADS=32 -o tests/bin/thread_test_btree_32
 
-thread_test_run: thread_test
-	./tests/bin/thread_test_1
-	./tests/bin/thread_test_2
-	./tests/bin/thread_test_4
-	./tests/bin/thread_test_8
-	./tests/bin/thread_test_16
-	./tests/bin/thread_test_32
+thread_test_btree_run: thread_test_btree
+	./tests/bin/thread_test_btree_1
+	./tests/bin/thread_test_btree_2
+	./tests/bin/thread_test_btree_4
+	./tests/bin/thread_test_btree_8
+	./tests/bin/thread_test_btree_16
+	./tests/bin/thread_test_btree_32
+
+ttest_map_flags=-DBUCKETSIZE=128 -DBUCKETTYPE=ts_map_bucket tests/ts_test.c++
+thread_test_map: tests/ts_test.c++
+	$(CC) $(CFLAGS) $(ttest_map_flags) -DNUM_THREADS=1 -o tests/bin/thread_test_map_1
+	$(CC) $(CFLAGS) $(ttest_map_flags) -DNUM_THREADS=2 -o tests/bin/thread_test_map_2
+	$(CC) $(CFLAGS) $(ttest_map_flags) -DNUM_THREADS=4 -o tests/bin/thread_test_map_4
+	$(CC) $(CFLAGS) $(ttest_map_flags) -DNUM_THREADS=8 -o tests/bin/thread_test_map_8
+	$(CC) $(CFLAGS) $(ttest_map_flags) -DNUM_THREADS=16 -o tests/bin/thread_test_map_16
+	$(CC) $(CFLAGS) $(ttest_map_flags) -DNUM_THREADS=32 -o tests/bin/thread_test_map_32
+
+thread_test_map_run: thread_test_map
+	./tests/bin/thread_test_map_1
+	./tests/bin/thread_test_map_2
+	./tests/bin/thread_test_map_4
+	./tests/bin/thread_test_map_8
+	./tests/bin/thread_test_map_16
+	./tests/bin/thread_test_map_32
 
 clean:
 	rm -r -f tests/bin/
