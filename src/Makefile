@@ -3,7 +3,7 @@ CC=g++
 CFLAGS=-g -I$(DIR)/include -L$(DIR)/lib -O2 -DTESTSIZE=7500000 -lgsl -lgslcblas -lrt -Wall
 GSL_RNG_SEED=`date +'%y%m%d%H%M%S'`
 GSL_RNG_TYPE=uni
-ENV=
+ENV= GSL_RNG_SEED=$(GSL_RNG_SEED) GSL_RNG_TYPE=$(GSL_RNG_TYPE)
 LD_LIBRARY_PATH=$(DIR)/lib
 
 tests: test_map test_trie 
@@ -80,7 +80,7 @@ shakespeare_ts: tests/shakespeare_ts_test.c++
 	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=32 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_32
 	$(CC) $(CFLAGS) -DBUCKETSIZE=32 -DNUM_THREADS=1024 tests/shakespeare_ts_test.c++ -o tests/bin/shakespeare_ts_1024
 
-ttest_btree_flags=-DBUCKETSIZE=32 -DBUCKETTYPE=ts_btree_bucket tests/ts_test.c++
+ttest_btree_flags=-DBUCKETSIZE=32 -DBUCKETTYPE=ts_btree_bucket -DNODETYPE=ts_locked_node_2 tests/ts_test.c++
 thread_test_btree: tests/ts_test.c++
 	$(CC) $(CFLAGS) $(ttest_btree_flags) -DNUM_THREADS=1 -o tests/bin/thread_test_btree_1
 	$(CC) $(CFLAGS) $(ttest_btree_flags) -DNUM_THREADS=2 -o tests/bin/thread_test_btree_2
@@ -90,14 +90,14 @@ thread_test_btree: tests/ts_test.c++
 	$(CC) $(CFLAGS) $(ttest_btree_flags) -DNUM_THREADS=32 -o tests/bin/thread_test_btree_32
 
 thread_test_btree_run: thread_test_btree
-	./tests/bin/thread_test_btree_1
-	./tests/bin/thread_test_btree_2
-	./tests/bin/thread_test_btree_4
-	./tests/bin/thread_test_btree_8
-	./tests/bin/thread_test_btree_16
-	./tests/bin/thread_test_btree_32
+	$(ENV) ./tests/bin/thread_test_btree_1
+	$(ENV) ./tests/bin/thread_test_btree_2
+	$(ENV) ./tests/bin/thread_test_btree_4
+	$(ENV) ./tests/bin/thread_test_btree_8
+	$(ENV) ./tests/bin/thread_test_btree_16
+	$(ENV) ./tests/bin/thread_test_btree_32
 
-ttest_map_flags=-DBUCKETSIZE=128 -DBUCKETTYPE=ts_map_bucket tests/ts_test.c++
+ttest_map_flags=-DBUCKETSIZE=256 -DNODETYPE=ts_locked_node_2 -DBUCKETTYPE=ts_map_bucket tests/ts_test.c++
 thread_test_map: tests/ts_test.c++
 	$(CC) $(CFLAGS) $(ttest_map_flags) -DNUM_THREADS=1 -o tests/bin/thread_test_map_1
 	$(CC) $(CFLAGS) $(ttest_map_flags) -DNUM_THREADS=2 -o tests/bin/thread_test_map_2
@@ -107,12 +107,12 @@ thread_test_map: tests/ts_test.c++
 	$(CC) $(CFLAGS) $(ttest_map_flags) -DNUM_THREADS=32 -o tests/bin/thread_test_map_32
 
 thread_test_map_run: thread_test_map
-	./tests/bin/thread_test_map_1
-	./tests/bin/thread_test_map_2
-	./tests/bin/thread_test_map_4
-	./tests/bin/thread_test_map_8
-	./tests/bin/thread_test_map_16
-	./tests/bin/thread_test_map_32
+	$(ENV) ./tests/bin/thread_test_map_1
+	$(ENV) ./tests/bin/thread_test_map_2
+	$(ENV) ./tests/bin/thread_test_map_4
+	$(ENV) ./tests/bin/thread_test_map_8
+	$(ENV) ./tests/bin/thread_test_map_16
+	$(ENV) ./tests/bin/thread_test_map_32
 
 clean:
 	rm -r -f tests/bin/

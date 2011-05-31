@@ -1,16 +1,73 @@
 #ifndef __TS_BTREE_BUCKET
 #define __TS_BTREE_BUCKET
 
+/*
+ * void iterativeInorder(Node* root) {
+  stack<Node*> nodeStack;
+  Node *curr = root;
+  for (;;) {
+    if (curr != NULL) {
+      nodeStack.push(curr);
+      curr = curr->left;
+      continue;
+    }   
+    if (nodeStack.size() == 0) {
+      return;
+    }   
+    curr = nodeStack.top();
+    nodeStack.pop();
+    cout << "Node data: " << curr->data << endl;
+    curr = curr->right;
+  }
+}
+ */
+
 template<
     typename K,
     typename V
 >
 class btree_node {
+    private:
+        typedef  btree_node<K,V> bnode;
+        void inNodeDelete(bnode **bn) {
+            bnode *n = *bn;
+            if(n->left == NULL && n->right == NULL) {
+                // removed node has no children
+                delete(n);
+                *bn = NULL;
+            } else if(n->left == NULL) {
+                // removed node has one child
+                bnode * temp = n;
+                *bn = n->right;
+                // Dont delete children, change ptr:
+                temp->right = NULL;
+                delete(temp);
+            } else if(n->right == NULL) {
+                // removed node has one child
+                *bn = n->left;
+                // Dont delete children, change ptr:
+                n->left = NULL;
+                delete(n);
+            } else {
+                // removed node has two children:
+                // subst with predecessor
+                bnode *pred = n->left;
+                bnode *parent = n;
+                while(pred->right != NULL) {
+                    parent = pred;
+                    pred = pred->right;
+                }
+                // Swap values and remove pred:
+                n->value = pred->value;
+                n->key = pred->key;
+                inNodeDelete(&(parent->left));
+            }
+        }
     public:
         K key;
         V value;
-        btree_node<K,V> *left;
-        btree_node<K,V> *right;
+        //typedef 
+        bnode *left, *right;
         explicit btree_node(const K &k, const V &val) {
             left = NULL;
             right = NULL;
@@ -45,15 +102,22 @@ class btree_node {
             return NULL;
         }
         bool remove(const K &k) {
-            if(k == key)
-                value = NULL;
-            else {
-                if(k < key)
-                    if(left != NULL)
-                        return left->remove(k);
-                if(right != NULL)
+            if(k < key && left != NULL) {
+                if(left->k == key) {
+                    inNodeRemove(&left);
+                    return true;
+                } else {
+                    return left->remove(k);
+                }
+            } else if(right != NULL) {
+                if(right->k == key) {
+                    inNodeRemove(&right);
+                    return true;
+                } else {
                     return right->remove(k);
+                }
             }
+            return false;
         }
 };
 
@@ -81,6 +145,7 @@ class ts_btree_bucket {
             AO_fetch_and_add1(atomic BUCKET_COUNT);
         }
         ~ts_btree_bucket() {
+            AO_fetch_and_add1(atomic BUCKETS_DESTROYED);
             if(root) delete(root);
             pthread_rwlock_destroy(&rwlock);
         }
@@ -92,8 +157,14 @@ class ts_btree_bucket {
             else root->insert(k,v);
             pthread_rwlock_unlock(&rwlock);
         }
-        bool remove(key_type key) {
-            return false;
+        bool remove(key_type key, pthread_rwlock_t *oldLock = NULL) {
+            bool ret = false;
+            pthread_rwlock_wrlock(&rwlock);
+            if(oldLock) pthread_rwlock_unlock(oldLock);
+            if(root != NULL) ret = root->remove(key);
+            if(ret) size--;
+            pthread_rwlock_unlock(&rwlock);
+            return ret;
         }
         value_type find(const key_type &key, pthread_rwlock_t *oldLock = NULL) {
             value_type ret = NULL;
@@ -103,14 +174,14 @@ class ts_btree_bucket {
             pthread_rwlock_unlock(&rwlock);
             return ret;
         }
-        bool shouldBurst() {
-            return (size > capacity);
-        }
         node *burst() {
+            node *newnode = NULL;
             pthread_rwlock_wrlock(&rwlock);
-            node *newnode = new node();
-            inOrderBurst(root, newnode);
-            size = 0;
+            if(size > capacity) {
+                newnode = new node();
+                inOrderBurst(root, newnode);
+                size = 0;
+            }
             pthread_rwlock_unlock(&rwlock);
             return newnode;
         }

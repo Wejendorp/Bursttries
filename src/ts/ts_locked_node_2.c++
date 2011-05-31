@@ -4,8 +4,8 @@
 #include <pthread.h>
 #include "../include/atomic_ops.h"
 
-#ifndef __TS_LOCKED_NODE
-#define __TS_LOCKED_NODE
+#ifndef __TS_LOCKED_NODE_2
+#define __TS_LOCKED_NODE_2
 
 
 #define __NODE_CHILD_UNUSED 0
@@ -19,9 +19,9 @@ template<
     typename V,
     template<class> class B
 >
-class ts_locked_node {
+class ts_locked_node_2 {
     private:
-        typedef ts_locked_node<K,V,B> node;
+        typedef ts_locked_node_2<K,V,B> node;
         typedef B<node> bucket;
 
         struct child_t {
@@ -40,13 +40,13 @@ class ts_locked_node {
         typedef K key_type;
         typedef typename std::pair<K,V> pair;
 
-        explicit ts_locked_node() {
+        explicit ts_locked_node_2() {
             memset(children, 0, sizeof(children));
             v = NULL;
             pthread_rwlock_init(&lock, NULL);
             AO_fetch_and_add1(atomic NODE_COUNT);
         }
-        ~ts_locked_node() {
+        ~ts_locked_node_2() {
             for(int i = 0; i < NODESIZE; i++) {
                 child_t *c = &children[i];
                 if(c->tag == __NODE_CHILD_NODE)
@@ -79,16 +79,15 @@ class ts_locked_node {
                         child->b = new bucket(BUCKETSIZE);
                         b = child->b;
                     }
-                    if(child->b->shouldBurst()) {
-                        bucket *temp = child->b;
-                        child->n = temp->burst();
-                        n = child->n;
+                    b->insert(key.substr(1), value, NULL);
+
+                    node *newnode;
+                    if((newnode = b->burst()) != NULL) {
+                        child->n = newnode;
                         child->tag = __NODE_CHILD_NODE;
-                        delete(temp);
-                        n->insert(key.substr(1), value, &lock, index+1);
-                    } else {
-                        b->insert(key.substr(1), value, &lock);
+                        delete(b);
                     }
+                    pthread_rwlock_unlock(&lock);
                 }
             }
         }

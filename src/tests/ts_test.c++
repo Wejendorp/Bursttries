@@ -1,4 +1,5 @@
 int *BUCKET_COUNT = new int(0);
+int *BUCKETS_DESTROYED = new int(0);
 int *NODE_COUNT = new int(0);
 #include "../ts/ts_bursttrie.c++"
 
@@ -13,7 +14,7 @@ int *NODE_COUNT = new int(0);
 #include <time.h>
 #include <iostream>
 
-#define ITERATIONS 10
+#define ITERATIONS 1
 #define STR(x)   #x
 #define SHOW_DEFINE(x) std::printf("%s=%s\n", #x, STR(x))
 
@@ -60,7 +61,7 @@ void stopTimer(timespec start) {
     std::printf("%lld:%09lld\n", sec, nsec % 1000000000);
 
 }
-typedef ts_bursttrie<std::string, std::string*, BUCKETTYPE, ts_locked_node> testStruct;
+typedef ts_bursttrie<std::string, std::string*, BUCKETTYPE, NODETYPE> testStruct;
 //typedef ts_bursttrie<
 //            ts_locked_node<std::string, std::string*, BUCKETTYPE >
 //            > testStruct;
@@ -79,7 +80,7 @@ int main() {
     SHOW_DEFINE(TESTSIZE);
     SHOW_DEFINE(ITERATIONS);
     SHOW_DEFINE(NUM_THREADS);
-
+    SHOW_DEFINE(NODETYPE);
     SHOW_DEFINE(BUCKETTYPE);
     SHOW_DEFINE(BUCKETSIZE);
 
@@ -106,6 +107,7 @@ int main() {
         delete(t);
         t = new testStruct();
         *BUCKET_COUNT = 0;
+        *BUCKETS_DESTROYED = 0;
         *NODE_COUNT = 0;
         // Create writer-threads
         for(int j = 0; j < NUM_THREADS; j++) {
@@ -120,6 +122,7 @@ int main() {
     stopTimer(start);
     std::cout << "Created "<<*NODE_COUNT << " nodes!"<<std::endl;
     std::cout << "Created "<<*BUCKET_COUNT << " buckets!"<<std::endl;
+    std::cout << "Destroyed "<<*BUCKETS_DESTROYED << " buckets!"<<std::endl;
 
 
     start = startTimer();
@@ -151,6 +154,8 @@ int main() {
     delete(v);
     delete(t);
     delete(BUCKET_COUNT);
+    delete(BUCKETS_DESTROYED);
     delete(NODE_COUNT);
+
     return 0;
 }
