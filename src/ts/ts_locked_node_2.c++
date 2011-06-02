@@ -59,11 +59,11 @@ class ts_locked_node_2 {
         void insert(const pair &p) {
             insert(p.first, p.second);
         }
-        void insert(const K &key, const V &value, pthread_rwlock_t *oldLock=NULL, unsigned int index = 0) {
+        void insert(const K &key, const V &value, pthread_rwlock_t *oldLock=NULL) {
             pthread_rwlock_wrlock(&lock);
             if(oldLock) pthread_rwlock_unlock(oldLock);
             // EOS handling
-            if(key.length() == 0) { //<= index) {
+            if(key.length() == 0) {
                 v = value;
                 pthread_rwlock_unlock(&lock);
             } else {
@@ -72,7 +72,7 @@ class ts_locked_node_2 {
                 node * n = child->n;
                 bucket *b = child->b;
                 if(child->tag == __NODE_CHILD_NODE) {
-                    n->insert(key.substr(1), value, &lock, index+1);
+                    n->insert(key.substr(1), value, &lock);
                 } else {
                     if(child->tag == __NODE_CHILD_UNUSED) {
                         child->tag = __NODE_CHILD_BUCKET;
@@ -91,7 +91,7 @@ class ts_locked_node_2 {
                 }
             }
         }
-        V find(const K &key, pthread_rwlock_t *oldLock = NULL, unsigned int index = 0) {
+        V find(const K &key, pthread_rwlock_t *oldLock = NULL) {
             pthread_rwlock_rdlock(&lock);
             if(oldLock) pthread_rwlock_unlock(oldLock);
 
@@ -105,9 +105,8 @@ class ts_locked_node_2 {
             if(child->tag == __NODE_CHILD_BUCKET)
                 return child->b->find(key.substr(1), &lock);
             else if (child->tag == __NODE_CHILD_NODE) {
-                return child->n->find(key.substr(1), &lock, index+1);
+                return child->n->find(key.substr(1), &lock);
             }
-            std::cout << std::endl;
             return NULL;
         }
         void remove(const K &key, pthread_rwlock_t *oldLock = NULL, unsigned int index = 0) {
@@ -119,12 +118,12 @@ class ts_locked_node_2 {
                 pthread_rwlock_unlock(&lock);
             }
             char c = key[index];
-            child_t child = children[c];
+            child_t *child = &children[c];
 
-            if(child.tag == __NODE_CHILD_BUCKET)
-                return child.b->remove(key.substr(index), &lock);
-            else if (child.tag == __NODE_CHILD_NODE) {
-                return child.n->remove(key, &lock, index+1);
+            if(child->tag == __NODE_CHILD_BUCKET)
+                return child->b->remove(key.substr(1), &lock);
+            else if (child->tag == __NODE_CHILD_NODE) {
+                return child->n->remove(key.substr(1), &lock);
             }
         }
 };

@@ -10,6 +10,7 @@ class test_thread {
         pthread_t id;
         inputType *in;
         outputType **out;
+        bool strict;
         //int mismatches;
 
         static void* write_dispatch(void *arg) {
@@ -30,7 +31,8 @@ class test_thread {
         void *read_routine() {
             std::string *val;
             while((val = in->getNext()) != NULL) {
-                if(val != (*out)->find(*val)) {
+                if( ( strict &&  val != (*out)->find(*val)) ||
+                    (!strict && *val != *(*out)->find(*val)) ) {
                     //if(mismatches == 0)
                     std::cout << "mismatch for " << val << " == "\
                         <<(*out)->find(*val) << std::endl;
@@ -45,6 +47,7 @@ class test_thread {
         explicit test_thread(inputType *input, outputType **output) {
             in = input;
             out = output;
+            strict = true;
             //mismatches = 0;
         }
         ~test_thread() {
@@ -55,7 +58,8 @@ class test_thread {
             pthread_create(&id, NULL, test_thread::write_dispatch,
                     reinterpret_cast<void*>(this));
         }
-        void read() {
+        void read(bool _strict) {
+            strict = _strict;
             pthread_create(&id, NULL, test_thread::read_dispatch,
                     reinterpret_cast<void*>(this));
         }

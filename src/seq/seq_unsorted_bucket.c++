@@ -7,33 +7,27 @@
 #ifndef __SEQ_UNSORTED_BUCKET
 #define __SEQ_UNSORTED_BUCKET
 
-#define m_pair std::make_pair<K, V>
+#define m_pair std::make_pair<key_type, value_type>
 
-#define STABLE 0
-#define BURSTING 1
-
-//
-// Needs a bitvector implementation
-//
 template<
-    typename K,
-    typename V
+    typename N
 >
 class seq_unsorted_bucket {
-    private:
-        typedef std::vector<std::pair<K, V> > pairvector;
+    public:
+        typedef typename N::value_type value_type;
+        typedef typename N::key_type key_type;
+        typedef N node;
+
+        typedef std::pair<key_type, value_type> pair;
+        typedef std::vector<pair > pairvector;
         typedef std::allocator<pairvector> vector_alloc_t;
         vector_alloc_t vector_allocator;
 
-        typedef typename pairvector::iterator iter;
-        typedef seq_node<K,V,seq_unsorted_bucket<K,V> > node;
-        int capacity;
+        typedef typename pairvector::iterator iterator;
+        unsigned int capacity;
 
         pairvector *contents;
 
-    public:
-        typedef V value_type;
-        typedef K key_type;
 
         explicit seq_unsorted_bucket(int cap) {
             contents = vector_allocator.allocate(1);
@@ -44,11 +38,11 @@ class seq_unsorted_bucket {
             vector_allocator.destroy(contents);
             vector_allocator.deallocate(contents, 1);
         }
-        void insert(K key, V value) {
+        void insert(key_type key, value_type value) {
             contents->push_back(m_pair(key, value));
         }
-        bool remove(K key) {
-            iter it;
+        bool remove(key_type key) {
+            iterator it;
             for(it = contents->begin(); it != contents->end(); it++) {
                 if((*it).first == key){
                     contents->erase(it);
@@ -57,28 +51,32 @@ class seq_unsorted_bucket {
             }
             return true;
         }
-        V find(K key) {
-            iter it;
+        value_type find(key_type key) {
+            iterator it;
             for(it = contents->begin(); it != contents->end(); it++) {
                 if((*it).first == key) {
-                 //   std::cout << (*it).first << " == "<< key << std::endl;
                     return (*it).second;
                 }
             }
-            std::cout << key << " not found "<< std::endl;
             return NULL;
         }
-        bool shouldBurst() {
-            return contents->size() > capacity;
-        }
         node *burst() {
-            node *newnode = new node();
-            iter it;
-            for(it = contents->begin(); it != contents->end(); it++) {
-                std::pair<K, V> p = (*it);
-                newnode->insert(p.first, p.second);
+            node *newnode = NULL;
+            if(contents->size() > capacity) {
+                newnode = new node();
+                iterator it;
+                for(it = contents->begin(); it != contents->end(); it++) {
+                    pair p = (*it);
+                    newnode->insert(p.first, p.second);
+                }
             }
             return newnode;
+        }
+        iterator begin() {
+            return contents->begin();
+        }
+        iterator end() {
+            return contents->end();
         }
 };
 #endif

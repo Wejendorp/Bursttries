@@ -13,15 +13,18 @@
 template<
     typename K,
     typename V,
-    typename B
+    template<class> class B
 >
 class seq_node {
     private:
+        typedef seq_node<K,V,B> node;
+        typedef B<node> bucket;
+
         struct child_t {
             char tag; // 
             union {
-                seq_node<K,V,B> *n;
-                B       *b;
+                node   *n;
+                bucket *b;
             };
         };
 
@@ -31,7 +34,6 @@ class seq_node {
     public:
         typedef K key_type;
         typedef V value_type;
-        typedef B bucket_type;
         typedef typename std::pair<K,V> pair;
 
         explicit seq_node() {
@@ -47,45 +49,43 @@ class seq_node {
                     delete(c->b);
             }
         }
-        void insert(pair p) {
+        void insert(const pair &p) {
             insert(p.first, p.second);
         }
-        void insert(K key, V value) {
+        void insert(const K &key, const V &value) {
             // EOS handling
-            char c = key[0];
-            //if(c == '\0') {
             if(key.length() == 0) {
                 v = value;
                 return;
             }
-            child_t *child = &children[c];
+            char c = key[0];
+            child_t *child = &children[(int) c];
+            bucket *b = child->b;
             if(child->tag == __NODE_CHILD_NODE) {
                 child->n->insert(key.substr(1), value);
             } else {
                 if(child->tag == __NODE_CHILD_UNUSED) {
                     child->tag = __NODE_CHILD_BUCKET;
-                    child->b = new B(BUCKETSIZE);
+                    child->b = new bucket(BUCKETSIZE);
+                    b = child->b;
                 }
-                child->b->insert(key.substr(1), value);
+                b->insert(key.substr(1), value);
 
-                if(child->b->shouldBurst()) {
-                    B *temp = child->b;
-                    child->n = temp->burst();
+                node *newnode = NULL;
+                if((newnode = b->burst()) != NULL) {
+                    child->n = newnode;
                     child->tag = __NODE_CHILD_NODE;
-                    delete(temp);
+                    delete(b);
                 }
             }
         }
         V find(K key) {
             // EOS handling
             char c = key[0];
-            //if(c == '\0') {
             if(key.length() == 0) {
-                //std::cout << "in-node return at " << key << std::endl;
                 return v;
             }
-
-            child_t *child = &children[c];
+            child_t *child = &children[(int)c];
             if(child->tag == __NODE_CHILD_BUCKET)
                 return child->b->find(key.substr(1));
             else if (child->tag == __NODE_CHILD_NODE) {
@@ -95,7 +95,7 @@ class seq_node {
         }
         void remove(K key) {
             char c = key[0];
-            if(c == '\0') {
+            if(c == key.length()) {
                 v = NULL;
                 return;
             }

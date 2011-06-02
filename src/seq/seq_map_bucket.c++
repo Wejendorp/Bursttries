@@ -1,28 +1,24 @@
+#ifndef __SEQ_MAP_BUCKET
+#define __SEQ_MAP_BUCKET
 #include <algorithm>
 #include <vector>
 #include <stdlib.h>
 #include <string.h>
 #include <map>
-#include "seq_node.c++"
-
-#ifndef __SEQ_MAP_BUCKET
-#define __SEQ_MAP_BUCKET
 
 template<
-    typename K,
-    typename V
+    typename N
 >
 class seq_map_bucket {
-    private:
-        typedef seq_node<K,V,seq_map_bucket<K,V> > node;
-        typedef typename std::map<K,V> theMap;
-        int capacity, size;
-        theMap * m;
-
     public:
-        typedef V value_type;
-        typedef K key_type;
-
+        typedef typename N::value_type value_type;
+        typedef typename N::key_type key_type;
+        typedef N node;
+    private:
+        typedef typename std::map<key_type,value_type> theMap;
+        unsigned int capacity, size;
+        theMap * m;
+    public:
         explicit seq_map_bucket(int cap) {
             capacity = cap;
             size = 0;
@@ -31,23 +27,23 @@ class seq_map_bucket {
         ~seq_map_bucket() {
             if(m) delete(m);
         }
-        void insert(K k, V v) {
+        void insert(key_type k, value_type v) {
             (*m)[k] = v;
         }
-        bool remove(K key) {
+        bool remove(key_type key) {
             return false;
         }
-        V find(K key) {
+        value_type find(key_type key) {
             return (*m)[key];
         }
-        bool shouldBurst() {
-            return size > capacity;
-        }
         node *burst() {
-            node *newnode = new node();
-            typename theMap::iterator it;
-            for(it = m->begin(); it != m->end(); it++) {
-                newnode->insert((*it).first, (*it).second);
+            node * newnode = NULL;
+            if(m->size() > capacity) {
+                newnode = new node();
+                typename theMap::iterator it;
+                for(it = m->begin(); it != m->end(); it++) {
+                    newnode->insert((*it).first, (*it).second);
+                }
             }
             return newnode;
         }

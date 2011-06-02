@@ -16,7 +16,6 @@
 #include <iostream>
 #include <vector>
 
-#define ITERATIONS 10
 #ifndef BUCKETTYPE
 #define BUCKETTYPE map
 #endif
@@ -59,33 +58,33 @@ void print_time(timespec t) {
     std::printf("%lld:%09lld\n", sec, nsec % 1000000000);
 }
 #ifdef TRIE
-    typedef seq_bursttrie<
-                seq_node<std::string, std::string*, BUCKETTYPE<
-                                                std::string, std::string*>
-                        >
-                > testStruct;
+    typedef seq_bursttrie<std::string, std::string*, BUCKETTYPE, seq_node> testStruct;
 #else
     typedef std::map<std::string, std::string *> testStruct;
 #endif
 
 int main() {
-    std::cout<<std::endl<<"Starting test:"<<std::endl;
-    SHOW_DEFINE(BUCKETTYPE);
-    SHOW_DEFINE(BUCKETSIZE);
     testStruct *t = NULL;
     std::vector<std::string*> keys(TESTSIZE);
+
+    std::cout<<std::endl<<"Starting test:"<<std::endl;
+    SHOW_DEFINE(TESTSIZE);
+    SHOW_DEFINE(ITERATIONS);
+    SHOW_DEFINE(NODETYPE);
+    SHOW_DEFINE(BUCKETTYPE);
+    SHOW_DEFINE(BUCKETSIZE);
+
     // Generate random numbers 
     const gsl_rng_type * T;
     gsl_rng * r;
-
     gsl_rng_env_setup();
 
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
 
-    int len = 10; // (rand() % 12) + 1;
+    int len = (rand() % 12) + 1;
     for(int i = 0; i < TESTSIZE; i++) {
-        std::string *st = new std::string("aaaaaaaaaa");
+        std::string *st = new std::string();
         gen_random(st, len, r);
         keys[i] = st;
     }
@@ -139,5 +138,6 @@ int main() {
     for(int i = 0; i < TESTSIZE; i++) {
        delete(keys[i]);
     }
+    delete(t);
     return 0;
 }

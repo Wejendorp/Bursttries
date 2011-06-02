@@ -13,8 +13,8 @@ int *NODE_COUNT = new int(0);
 #include <gsl/gsl_rng.h> // random number generator
 #include <time.h>
 #include <iostream>
+#include <fstream>
 
-#define ITERATIONS 1
 #define STR(x)   #x
 #define SHOW_DEFINE(x) std::printf("%s=%s\n", #x, STR(x))
 
@@ -61,10 +61,8 @@ void stopTimer(timespec start) {
     std::printf("%lld:%09lld\n", sec, nsec % 1000000000);
 
 }
+
 typedef ts_bursttrie<std::string, std::string*, BUCKETTYPE, NODETYPE> testStruct;
-//typedef ts_bursttrie<
-//            ts_locked_node<std::string, std::string*, BUCKETTYPE >
-//            > testStruct;
 typedef crewVector<std::string*> strVector;
 
 int main() {
@@ -77,6 +75,7 @@ int main() {
     }
 
     std::cout<<std::endl<<"Starting test:"<<std::endl;
+    SHOW_DEFINE(DATASET);
     SHOW_DEFINE(TESTSIZE);
     SHOW_DEFINE(ITERATIONS);
     SHOW_DEFINE(NUM_THREADS);
@@ -84,6 +83,7 @@ int main() {
     SHOW_DEFINE(BUCKETTYPE);
     SHOW_DEFINE(BUCKETSIZE);
 
+#ifndef DATASET
     // Generate random numbers 
     const gsl_rng_type * T;
     gsl_rng * r;
@@ -92,13 +92,23 @@ int main() {
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
 
-    int len = 10; // (rand() % 12) + 1;
+    int len = (rand() % 12) + 1;
     for(int i = 0; i < TESTSIZE; i++) {
         std::string *st = new std::string("aaaaaaaaaa");
         gen_random(st, len, r);
         v->v->push_back( st );
     }
     gsl_rng_free(r);
+#else
+    std::ifstream fin("./datasets/shakespeare.txt");
+    std::string word;
+    while(fin.good()) {
+        fin >> word;
+        std::string *st = new std::string(word);
+        v->v->push_back(st);
+    }
+#endif
+
     // Start timer
     //
     timespec start = startTimer();
@@ -131,7 +141,11 @@ int main() {
         v->reset();
         // Create writer-threads
         for(int j = 0; j < NUM_THREADS; j++) {
-            threads[j]->read();
+#ifdef DATASET
+            threads[j]->read(false); // disable strict
+#else
+            threads[j]->read(true);
+#endif
         }
         // Join threads
         for(int j = 0; j < NUM_THREADS; j++) {
@@ -145,7 +159,7 @@ int main() {
 
     // Cleanup!!
     //
-    for(int i = 0; i < TESTSIZE; i++) {
+    for(unsigned int i = 0; i < v->v->size(); i++) {
        delete((*v->v)[i]);
     }
     for(int i = 0; i < NUM_THREADS; i++) {

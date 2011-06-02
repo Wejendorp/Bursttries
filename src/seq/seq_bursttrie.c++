@@ -1,23 +1,26 @@
-#include "seq_node.c++"
-
 #ifndef __SEQ_BURSTTRIE
 #define __SEQ_BURSTTRIE
+#include "seq_node.c++"
 
 template<
-    typename N // Nodetype
+    typename K,
+    typename V,
+    template<class> class B,
+    template<class, class, template<class> class> class N // Nodetype
 >
 class seq_bursttrie {
     private:
-        N *root;
+        typedef N<K,V,B> node;
+        typedef B<node> bucket;
+        typedef typename std::pair<K,V> pair;
+        node *root;
 
     public:
-        typedef typename N::key_type    K;
-        typedef typename N::value_type  V;
-        typedef typename N::bucket_type B;
-        typedef typename std::pair<K,V> pair;
+        typedef K  key_type;
+        typedef V  value_type;
 
         explicit seq_bursttrie() {
-            root = new N();
+            root = new node();
         }
         ~seq_bursttrie() {
             delete(root);
