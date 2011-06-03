@@ -19,6 +19,7 @@ class seq_node {
     private:
         typedef seq_node<K,V,B> node;
         typedef B<node> bucket;
+        size_t _size;
 
         struct child_t {
             char tag; // 
@@ -39,6 +40,7 @@ class seq_node {
         explicit seq_node() {
             memset(children, 0, sizeof(children));
             v = NULL;
+            _size = 0;
         }
         ~seq_node() {
             for(int i = 0; i < NODESIZE; i++) {
@@ -49,6 +51,9 @@ class seq_node {
                     delete(c->b);
             }
         }
+        size_t size() {
+            return _size;
+        }
         void insert(const pair &p) {
             insert(p.first, p.second);
         }
@@ -56,6 +61,7 @@ class seq_node {
             // EOS handling
             if(key.length() == 0) {
                 v = value;
+                _size++;
                 return;
             }
             char c = key[0];
@@ -67,6 +73,7 @@ class seq_node {
                 if(child->tag == __NODE_CHILD_UNUSED) {
                     child->tag = __NODE_CHILD_BUCKET;
                     child->b = new bucket(BUCKETSIZE);
+                    _size++;
                     b = child->b;
                 }
                 b->insert(key.substr(1), value);
@@ -93,18 +100,28 @@ class seq_node {
             }
             return NULL;
         }
-        void remove(K key) {
+        bool remove(K key) {
+            bool ret = false;
+
             char c = key[0];
-            if(c == key.length()) {
+            if(key.length() == 0) {
+                _size--;
                 v = NULL;
-                return;
+                return true;
             }
             child_t *child = &children[c];
-            if(child->tag == __NODE_CHILD_BUCKET)
-                return child->b->remove(key.substr(1));
-            else if (child->tag == __NODE_CHILD_NODE) {
-                return child->n->remove(key.substr(1));
+            if(child->tag == __NODE_CHILD_BUCKET) {
+                if(child->b->remove(key.substr(1)) && child->b->size() == 0) {
+                        _size--;
+                        ret = true;
+                }
+            } else if (child->tag == __NODE_CHILD_NODE) {
+                if(child->n->remove(key.substr(1)) && child->n->size() == 0) {
+                    _size--;
+                    ret = true;
+                }
             }
+            return ret;
         }
 };
 #endif
