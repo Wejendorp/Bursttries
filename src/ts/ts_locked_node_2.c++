@@ -1,12 +1,12 @@
+
+#ifndef __TS_LOCKED_NODE_2
+#define __TS_LOCKED_NODE_2
 #include <stdio.h>
 #include <iostream>
 #include <string.h>
 #include <pthread.h>
 #include "../include/atomic_ops.h"
-
-#ifndef __TS_LOCKED_NODE_2
-#define __TS_LOCKED_NODE_2
-
+#include <algorithm>
 
 #define __NODE_CHILD_UNUSED 0
 #define __NODE_CHILD_BUCKET 1
@@ -23,6 +23,8 @@ class ts_locked_node_2 {
     private:
         typedef ts_locked_node_2<K,V,B> node;
         typedef B<node> bucket;
+        size_t _size;
+        int _max, _min;
 
         struct child_t {
             char tag; // 
@@ -35,6 +37,27 @@ class ts_locked_node_2 {
         V v;
         pthread_rwlock_t lock;
 
+        bucket *successor(int c) {
+            int i = c;
+            for(i = std::max(_min,i); i <= _max; i++) {
+                if(children[i].tag == __NODE_CHILD_BUCKET)
+                    return children[i].b;
+                else if(children[i].tag == __NODE_CHILD_NODE)
+                    return children[i].n->successor(0);
+            }
+            return NULL;
+        }
+        bucket *predecessor(int c) {
+            int i = c;
+            for(i = std::min(_max,i); i >= _min; i--) {
+                if(children[i].tag == __NODE_CHILD_BUCKET)
+                    return children[i].b;
+                else if(children[i].tag == __NODE_CHILD_NODE)
+                    return children[i].n->predecessor(NODESIZE);
+            }
+            return NULL;
+        }
+
     public:
         typedef V value_type;
         typedef K key_type;
@@ -42,12 +65,15 @@ class ts_locked_node_2 {
 
         explicit ts_locked_node_2() {
             memset(children, 0, sizeof(children));
+            _size = 0;
+            _max = -1;
+            _min = NODESIZE+1;
             v = NULL;
             pthread_rwlock_init(&lock, NULL);
             AO_fetch_and_add1(atomic NODE_COUNT);
         }
         ~ts_locked_node_2() {
-            for(int i = 0; i < NODESIZE; i++) {
+            for(int i = _min; i < _max+1; i++) {
                 child_t *c = &children[i];
                 if(c->tag == __NODE_CHILD_NODE)
                     delete(c->n);
@@ -56,15 +82,21 @@ class ts_locked_node_2 {
             }
             pthread_rwlock_destroy(&lock);
         }
+        size_t size() {
+            return _size;
+        }
         void insert(const pair &p) {
             insert(p.first, p.second);
         }
-        void insert(const K &key, const V &value, pthread_rwlock_t *oldLock=NULL) {
+        void insert(const K &key, const V &value,
+                bucket *llink = NULL, bucket *rlink = NULL, pthread_rwlock_t *oldLock=NULL) {
+
             pthread_rwlock_wrlock(&lock);
             if(oldLock) pthread_rwlock_unlock(oldLock);
             // EOS handling
             if(key.length() == 0) {
                 v = value;
+                _size++;
                 pthread_rwlock_unlock(&lock);
             } else {
                 char c = key[0];
@@ -72,12 +104,32 @@ class ts_locked_node_2 {
                 node * n = child->n;
                 bucket *b = child->b;
                 if(child->tag == __NODE_CHILD_NODE) {
-                    n->insert(key.substr(1), value, &lock);
+                    n->insert(key.substr(1), value, NULL, NULL, &lock);
                 } else {
                     if(child->tag == __NODE_CHILD_UNUSED) {
+                        if((int)c < _max) _max = (int)c;
+                        if((int)c > _min) _min = (int)c;
+                        if(!rlink) {
+                            if(llink)
+                                rlink = llink->right;
+                            else {
+                                llink = predecessor((int)c);
+                                rlink = successor((int)c);
+                            }
+                        } else {
+                            //rlink set
+                            llink = rlink->left;
+                        }
+
                         child->tag = __NODE_CHILD_BUCKET;
                         child->b = new bucket(BUCKETSIZE);
+                        _size++;
                         b = child->b;
+
+                        b->setLeft(llink);
+                        b->setRight(rlink);
+                        if(rlink) rlink->setLeft(b);
+                        if(llink) llink->setRight(b);
                     }
                     b->insert(key.substr(1), value, NULL);
 
@@ -109,22 +161,40 @@ class ts_locked_node_2 {
             }
             return NULL;
         }
-        void remove(const K &key, pthread_rwlock_t *oldLock = NULL, unsigned int index = 0) {
+        bool remove(const K &key, pthread_rwlock_t *oldLock = NULL) {
             pthread_rwlock_rdlock(&lock);
             if(oldLock) pthread_rwlock_unlock(oldLock);
+            bool ret = false;
 
-            if(key.length() <= index) {
+            if(key.length() == 0) {
+                _size--;
                 v = NULL;
+                ret = true;
                 pthread_rwlock_unlock(&lock);
             }
-            char c = key[index];
-            child_t *child = &children[c];
+            char c = key[0];
+            child_t *child = &children[(int)c];
 
-            if(child->tag == __NODE_CHILD_BUCKET)
-                return child->b->remove(key.substr(1), &lock);
-            else if (child->tag == __NODE_CHILD_NODE) {
-                return child->n->remove(key.substr(1), &lock);
+            if(child->tag == __NODE_CHILD_BUCKET) {
+                // Wait with unlock if there is a chance of contraction
+                if(child->b->size() == 1 && child->b->remove(key.substr(1), NULL)) {
+                    _size--;
+                    child->tag = __NODE_CHILD_UNUSED;
+                    delete(child->b);
+                    ret = true;
+                    pthread_rwlock_unlock(&lock);
+                } else child->b->remove(key.substr(1), &lock);
+            } else if (child->tag == __NODE_CHILD_NODE) {
+                // Wait with unlock if there is a chance of contraction
+                if(child->n->size() == 1 && child->n->remove(key.substr(1), NULL)) {
+                    _size--;
+                    child->tag = __NODE_CHILD_UNUSED;
+                    delete(child->n);
+                    ret = true;
+                    pthread_rwlock_unlock(&lock);
+                } else child->n->remove(key.substr(1), &lock);
             }
+            return ret;
         }
 };
 #endif

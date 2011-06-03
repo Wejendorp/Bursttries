@@ -13,17 +13,21 @@ class ts_btree_bucket {
     private:
         typedef btree_node<key_type,value_type> btnode;
         typedef N node;
+        typedef ts_btree_bucket<N> bucket;
         volatile size_t capacity, _size;
         btnode* root;
         pthread_rwlock_t rwlock;
-
     public:
         typedef typename btnode::iterator iterator;
+        bucket *left, *right;
+
         // CONSTRUCTOR/DESTRUCTOR
         explicit ts_btree_bucket(int cap) {
             capacity = cap;
             root = NULL;
             _size = 0;
+            left = NULL;
+            right = NULL;
             pthread_rwlock_init(&rwlock, NULL);
             AO_fetch_and_add1(atomic BUCKET_COUNT);
         }
@@ -32,7 +36,16 @@ class ts_btree_bucket {
             if(root) delete(root);
             pthread_rwlock_destroy(&rwlock);
         }
-
+        void setLeft(bucket *llink) {
+            pthread_rwlock_wrlock(&rwlock);
+            left = llink;
+            pthread_rwlock_unlock(&rwlock);
+        }
+        void setRight(bucket *rlink) {
+            pthread_rwlock_wrlock(&rwlock);
+            right = rlink;
+            pthread_rwlock_unlock(&rwlock);
+        }
         // ITERATORS
         // start a forward-iterator of the bucket
         iterator begin() {
@@ -83,22 +96,25 @@ class ts_btree_bucket {
             return ret;
         }
         node *burst() {
+            return burst(left, right);
+        }
+        node *burst(bucket *l, bucket *r) {
             node *newnode = NULL;
             pthread_rwlock_wrlock(&rwlock);
             if(_size > capacity) {
                 newnode = new node();
-                inOrderBurst(root, newnode);
+                preOrderBurst(root, newnode, l, r);
                 _size = 0;
             }
             pthread_rwlock_unlock(&rwlock);
             return newnode;
         }
     private:
-        void inOrderBurst(btnode *bn, node *nn) {
+        void preOrderBurst(btnode *bn, node *nn, bucket* l = NULL, bucket* r = NULL) {
             if(bn == NULL) return;
-            inOrderBurst(bn->left, nn);
-            nn->insert(bn->key, bn->value);
-            inOrderBurst(bn->right, nn);
+            nn->insert(bn->key, bn->value, l, r);
+            preOrderBurst(bn->left, nn);
+            preOrderBurst(bn->right, nn);
         }
 };
 #endif

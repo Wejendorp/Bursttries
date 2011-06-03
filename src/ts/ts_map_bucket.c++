@@ -11,6 +11,8 @@ class ts_map_bucket {
         typedef typename N::key_type key_type;
         typedef N node;
         typedef std::map<key_type,value_type> map;
+        typedef ts_map_bucket<N> bucket;
+        bucket *left, *right;
         map *m;
         volatile unsigned int capacity, size;
         pthread_rwlock_t rwlock;
@@ -23,12 +25,26 @@ class ts_map_bucket {
             m = new map();
             pthread_rwlock_init(&rwlock, NULL);
             AO_fetch_and_add1(atomic BUCKET_COUNT);
+            left = NULL;
+            right = NULL;
         }
         ~ts_map_bucket() {
             AO_fetch_and_add1(atomic BUCKETS_DESTROYED);
             pthread_rwlock_destroy(&rwlock);
             delete(m);
         }
+
+        void setLeft(bucket *llink) {
+            pthread_rwlock_wrlock(&rwlock);
+            left = llink;
+            pthread_rwlock_unlock(&rwlock);
+        }
+        void setRight(bucket *rlink) {
+            pthread_rwlock_wrlock(&rwlock);
+            right = rlink;
+            pthread_rwlock_unlock(&rwlock);
+        }
+
         void insert(const key_type &k, const value_type &v, pthread_rwlock_t *oldLock = NULL) {
             pthread_rwlock_wrlock(&rwlock);
             if(oldLock) pthread_rwlock_unlock(oldLock);
@@ -62,8 +78,13 @@ class ts_map_bucket {
                 size = 0;
                 newnode = new node();
                 typename map::iterator it;
+                bool first = true;
                 for(it = m->begin(); it != m->end(); it++) {
-                    newnode->insert(*it);
+                    if(first)
+                        newnode->insert((*it).first, (*it).second, left, right);
+                    else {
+                        newnode->insert(*it);
+                    }
                 }
             }
             pthread_rwlock_unlock(&rwlock);

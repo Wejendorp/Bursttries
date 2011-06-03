@@ -6,9 +6,12 @@
 #include "ts_locked_node.c++"
 #include "ts_locked_node_2.c++"
 #include "ts_lockfree_node.c++"
+
 #include "ts_btree_bucket.c++"
-#include "ts_linkedlist_bucket.c++"
+//#include "ts_linkedlist_bucket.c++"
 #include "ts_map_bucket.c++"
+#include "ts_sorted_bucket.c++"
+#include "ts_unsorted_bucket.c++"
 
 template<
     typename K,
