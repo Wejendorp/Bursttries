@@ -7,6 +7,7 @@
 #include "ts_locked_node_2.c++"
 #include "ts_lockfree_node.c++"
 
+#include "../seq/bt_iterator.c++"
 #include "ts_btree_bucket.c++"
 //#include "ts_linkedlist_bucket.c++"
 #include "ts_map_bucket.c++"
@@ -24,6 +25,7 @@ class ts_bursttrie {
         typedef N<K, V, B> node;
         typedef B<node> bucket;
         typedef std::pair<K,V> pair;
+        typedef bt_iterator<bucket> iterator;
         node *root;
 
     public:
@@ -42,6 +44,13 @@ class ts_bursttrie {
         void insert(pair p) {
             return root->insert(p);
         }
+        iterator begin() {
+            return iterator(root->successor(0));
+        }
+        iterator end() {
+            return iterator(root->predecessor(999999), true);
+        }
+
 };
 
 #endif

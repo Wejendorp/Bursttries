@@ -61,6 +61,12 @@ class btree_node {
             bool operator<(self_type other) {
                 return this->nodeindex < other.nodeindex;
             }
+            bool operator==(self_type other) {
+                return this->nodeindex == other.nodeindex;
+            }
+            bool operator!=(self_type other) {
+                return this->nodeindex != other.nodeindex;
+            }
             bnode *operator*() {
                 return current;
             }

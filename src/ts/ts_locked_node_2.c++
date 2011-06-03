@@ -1,4 +1,3 @@
-
 #ifndef __TS_LOCKED_NODE_2
 #define __TS_LOCKED_NODE_2
 #include <stdio.h>
@@ -109,16 +108,17 @@ class ts_locked_node_2 {
                     if(child->tag == __NODE_CHILD_UNUSED) {
                         if((int)c < _max) _max = (int)c;
                         if((int)c > _min) _min = (int)c;
+
+                        // check for pred/succ if no override
+                        if(!llink) llink = predecessor((int)c);
+                        if(!rlink) rlink = successor((int)c);
+                        // use linkedlist if only one found
                         if(!rlink) {
                             if(llink)
                                 rlink = llink->right;
-                            else {
-                                llink = predecessor((int)c);
-                                rlink = successor((int)c);
-                            }
                         } else {
-                            //rlink set
-                            llink = rlink->left;
+                            if(!llink)
+                                llink = rlink->left;
                         }
 
                         child->tag = __NODE_CHILD_BUCKET;
@@ -180,6 +180,8 @@ class ts_locked_node_2 {
                 if(child->b->size() == 1 && child->b->remove(key.substr(1), NULL)) {
                     _size--;
                     child->tag = __NODE_CHILD_UNUSED;
+                    if(child->b->left) child->b->left->setRight(child->b->right);
+                    if(child->b->right) child->b->right->setLeft(child->b->left);
                     delete(child->b);
                     ret = true;
                     pthread_rwlock_unlock(&lock);
