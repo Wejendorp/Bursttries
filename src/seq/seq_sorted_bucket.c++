@@ -33,13 +33,16 @@ class seq_sorted_bucket {
         unsigned int capacity;
 
         pairvector *contents;
+        typedef seq_sorted_bucket<N> bucket;
 
     public:
+        bucket *left, *right;
 
         explicit seq_sorted_bucket(int cap) {
             contents = vector_allocator.allocate(1);
             vector_allocator.construct(contents, pairvector(0));
-
+            left = NULL;
+            right = NULL;
             capacity = cap;
         }
         ~seq_sorted_bucket() {

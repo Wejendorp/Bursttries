@@ -14,12 +14,15 @@ class seq_btree_bucket {
         typedef btree_node<key_type, value_type> btnode;
         size_t capacity, _size;
         btnode * root;
-
+        typedef seq_btree_bucket<N> bucket;
     public:
+        bucket *left, *right;
         typedef typename btnode::iterator iterator;
         explicit seq_btree_bucket(int cap) {
             capacity = cap;
             root = NULL;
+            left = NULL;
+            right = NULL;
             _size = 0;
         }
         ~seq_btree_bucket() {

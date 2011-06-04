@@ -20,6 +20,7 @@ class seq_node {
         typedef seq_node<K,V,B> node;
         typedef B<node> bucket;
         size_t _size;
+        int _max, _min;
 
         struct child_t {
             char tag; // 
@@ -32,6 +33,42 @@ class seq_node {
         child_t children[NODESIZE];
         V v;
 
+        bucket *successor(int i) {
+            i = succ_int(i);
+            if(i < NODESIZE) {
+                if(children[i].tag == __NODE_CHILD_BUCKET)
+                    return children[i].b;
+                else if(children[i].tag == __NODE_CHILD_NODE)
+                    return children[i].n->successor(0);
+            }
+            return NULL;
+        }
+        int succ_int(int i) {
+            for(i = std::max(_min,i); i <= _max; i++) {
+                if(children[i].tag != __NODE_CHILD_UNUSED)
+                    break;
+            }
+            return i;
+        }
+        bucket *predecessor(int c) {
+            int i = pred_int(c);
+            if(i >= 0) {
+                if (children[i].tag == __NODE_CHILD_BUCKET)
+                    return children[i].b;
+                else if(children[i].tag == __NODE_CHILD_NODE)
+                    return children[i].n->predecessor(NODESIZE);
+            }
+            return NULL;
+        }
+        int pred_int(int c) {
+            int i = c;
+            for(i = std::min(_max,i); i >= _min; i--) {
+                if(children[i].tag != __NODE_CHILD_UNUSED)
+                    break;
+            }
+            return i;
+        }
+
     public:
         typedef K key_type;
         typedef V value_type;
@@ -41,6 +78,8 @@ class seq_node {
             memset(children, 0, sizeof(children));
             v = NULL;
             _size = 0;
+            _max = -1;
+            _min = NODESIZE+1;
         }
         ~seq_node() {
             for(int i = 0; i < NODESIZE; i++) {
@@ -55,9 +94,9 @@ class seq_node {
             return _size;
         }
         void insert(const pair &p) {
-            insert(p.first, p.second);
+            insert(p.first, p.second, NULL, NULL);
         }
-        void insert(const K &key, const V &value) {
+        void insert(const K &key, const V &value, bucket *llink = NULL, bucket *rlink = NULL) {
             // EOS handling
             if(key.length() == 0) {
                 v = value;
@@ -71,10 +110,30 @@ class seq_node {
                 child->n->insert(key.substr(1), value);
             } else {
                 if(child->tag == __NODE_CHILD_UNUSED) {
+                    if((int)c < _max) _max = (int)c;
+                    if((int)c > _min) _min = (int)c;
+
+                    // check for pred/succ if no override
+                    if(!llink) llink = predecessor((int)c);
+                    if(!rlink) rlink = successor((int)c);
+                    // use linkedlist if only one found
+                    if(!rlink) {
+                        if(llink)
+                            rlink = llink->right;
+                    } else {
+                        if(!llink)
+                            llink = rlink->left;
+                    }
+
                     child->tag = __NODE_CHILD_BUCKET;
                     child->b = new bucket(BUCKETSIZE);
                     _size++;
                     b = child->b;
+
+                    b->left = llink;
+                    b->right = rlink;
+                    if(rlink) rlink->left = b;
+                    if(llink) llink->right = b;
                 }
                 b->insert(key.substr(1), value);
 
@@ -113,11 +172,20 @@ class seq_node {
             if(child->tag == __NODE_CHILD_BUCKET) {
                 if(child->b->remove(key.substr(1)) && child->b->size() == 0) {
                         _size--;
+                        if((int)c == _max) _max = pred_int(_max);
+                        if((int)c == _min) _min = succ_int(_min);
+
+                        child->tag = __NODE_CHILD_UNUSED;
+                        if(child->b->left) child->b->left->right = child->b->right;
+                        if(child->b->right) child->b->right->left = child->b->left;
+                        delete(child->b);
                         ret = true;
                 }
             } else if (child->tag == __NODE_CHILD_NODE) {
                 if(child->n->remove(key.substr(1)) && child->n->size() == 0) {
                     _size--;
+                    child->tag = __NODE_CHILD_UNUSED;
+                    delete(child->n);
                     ret = true;
                 }
             }

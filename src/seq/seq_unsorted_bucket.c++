@@ -27,12 +27,17 @@ class seq_unsorted_bucket {
         unsigned int capacity;
 
         pairvector *contents;
+        typedef seq_unsorted_bucket<N> bucket;
+
+        bucket * left, *right;
 
 
         explicit seq_unsorted_bucket(int cap) {
             contents = vector_allocator.allocate(1);
             vector_allocator.construct(contents, pairvector(0));
             capacity = cap;
+            left = NULL;
+            right = NULL;
         }
         ~seq_unsorted_bucket() {
             vector_allocator.destroy(contents);

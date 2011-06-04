@@ -36,25 +36,38 @@ class ts_locked_node_2 {
         V v;
         pthread_rwlock_t lock;
 
-        bucket *successor(int c) {
-            int i = c;
+        bucket *successor(int i) {
+            i = succ_int(i);
             for(i = std::max(_min,i); i <= _max; i++) {
-                if(children[i].tag == __NODE_CHILD_BUCKET)
+                if(children[i].tag == __node_child_bucket)
                     return children[i].b;
-                else if(children[i].tag == __NODE_CHILD_NODE)
+                else if(children[i].tag == __node_child_node)
                     return children[i].n->successor(0);
             }
             return NULL;
         }
+        int succ_int(int i) {
+            for(i = std::max(_min,i); i <= _max; i++) {
+                if(children[i].tag != __node_child_unused)
+                    break;
+            }
+            return i;
+        }
         bucket *predecessor(int c) {
+            int i = pred_int(c);
+            if(children[i].tag == __node_child_bucket)
+                return children[i].b;
+            else if(children[i].tag == __node_child_node)
+                return children[i].n->predecessor(nodesize);
+            return NULL;
+        }
+        int pred_int(int c) {
             int i = c;
             for(i = std::min(_max,i); i >= _min; i--) {
-                if(children[i].tag == __NODE_CHILD_BUCKET)
-                    return children[i].b;
-                else if(children[i].tag == __NODE_CHILD_NODE)
-                    return children[i].n->predecessor(NODESIZE);
+                if(children[i].tag != __node_child_unused)
+                    break;
             }
-            return NULL;
+            return i;
         }
 
     public:
@@ -179,6 +192,9 @@ class ts_locked_node_2 {
                 // Wait with unlock if there is a chance of contraction
                 if(child->b->size() == 1 && child->b->remove(key.substr(1), NULL)) {
                     _size--;
+                    if((int)c == _max) _max = pred_int(_max);
+                    if((int)c == _min) _min = succ_int(_min);
+
                     child->tag = __NODE_CHILD_UNUSED;
                     if(child->b->left) child->b->left->setRight(child->b->right);
                     if(child->b->right) child->b->right->setLeft(child->b->left);
