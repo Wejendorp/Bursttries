@@ -19,7 +19,7 @@ run: seq_run ts_run
 # Sequential tests
 seq_run: seq_tests
 	cat /proc/cpuinfo > ./logs/seq_$(DATE).log
-	$(ENV) find ./tests/bin/seq/ -type f -executable | sed 's/.*/time -v & >> .\/logs\/seq_$(DATE).log 2>\&1/g' | /bin/sh
+	$(ENV) find ./tests/bin/seq/ -type f -executable | sed 's/.*/\/usr\/bin\/time -v & >> .\/logs\/seq_$(DATE).log 2>\&1/g' | /bin/sh
 
 seq_tests: seq_map seq_trie 
 seq_map: tests/seq_test.c++
@@ -34,7 +34,7 @@ seq_trie: tests/seq_test.c++
 ts_tests: ts_random ts_shakespeare
 ts_run: ts_tests
 	cat /proc/cpuinfo > ./logs/ts_$(DATE).log
-	$(ENV) find ./tests/bin/ts/ -type f -executable | sed 's/.*/time -v & >> .\/logs\/ts_$(DATE).log 2>\&1/g' | /bin/sh
+	$(ENV) find ./tests/bin/ts/ -type f -executable | sed 's/.*/\/usr\/bin\/time -v & >> .\/logs\/ts_$(DATE).log 2>\&1/g' | /bin/sh
 
 ts_exec = $(CC) $(CFLAGS) tests/ts_test.c++ -DBUCKETTYPE=ts_$(btype)_bucket -DNODETYPE=ts_locked_node_2 \
 		-DBUCKETSIZE=$(bsize) -DNUM_THREADS=$(nt) -o tests/bin/ts/ts_b$(btype)_$(bsize)_t$(nt)
