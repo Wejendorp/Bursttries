@@ -29,9 +29,11 @@ class seq_map_bucket {
             left = NULL;
             right = NULL;
             m = new theMap;
+            AO_fetch_and_add1(atomic BUCKET_COUNT);
         }
         ~seq_map_bucket() {
             if(m) delete(m);
+            AO_fetch_and_add1(atomic BUCKETS_DESTROYED);
         }
         void insert(key_type k, value_type v) {
             (*m)[k] = v;

@@ -44,10 +44,12 @@ class seq_sorted_bucket {
             left = NULL;
             right = NULL;
             capacity = cap;
+            AO_fetch_and_add1(atomic BUCKET_COUNT);
         }
         ~seq_sorted_bucket() {
             vector_allocator.destroy(contents);
             vector_allocator.deallocate(contents, 1);
+            AO_fetch_and_add1(atomic BUCKETS_DESTROYED);
         }
 
         // Insert requires locking, for the same reasons as remove

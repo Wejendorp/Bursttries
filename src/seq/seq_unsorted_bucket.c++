@@ -38,10 +38,12 @@ class seq_unsorted_bucket {
             capacity = cap;
             left = NULL;
             right = NULL;
+            AO_fetch_and_add1(atomic BUCKET_COUNT);
         }
         ~seq_unsorted_bucket() {
             vector_allocator.destroy(contents);
             vector_allocator.deallocate(contents, 1);
+            AO_fetch_and_add1(atomic BUCKETS_DESTROYED);
         }
         void insert(key_type key, value_type value) {
             contents->push_back(m_pair(key, value));

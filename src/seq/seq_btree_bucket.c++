@@ -24,8 +24,10 @@ class seq_btree_bucket {
             left = NULL;
             right = NULL;
             _size = 0;
+            AO_fetch_and_add1(atomic BUCKET_COUNT);
         }
         ~seq_btree_bucket() {
+            AO_fetch_and_add1(atomic BUCKETS_DESTROYED);
             if(root) delete(root);
         }
 

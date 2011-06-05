@@ -1,3 +1,6 @@
+int *BUCKET_COUNT = new int(0);
+int *BUCKETS_DESTROYED = new int(0);
+int *NODE_COUNT = new int(0);
 #ifdef TRIE
 #include "../seq/seq_bursttrie.c++"
 #include "../seq/seq_sorted_bucket.c++"
@@ -25,11 +28,12 @@
 // Generate a random string with a given alphabet,
 // and place it in the given string
 //
-void gen_random(std::string *s, const int len, gsl_rng *r) {
+void gen_random(std::string *s, gsl_rng *r) {
     static const char alphanum[] =
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
+    int len = gsl_rng_uniform_int(r, 7)+5;
     for(int i = 0; i < len; i++) {
         int u = gsl_rng_uniform_int(r, sizeof(alphanum));
         s->replace(i, 1,1, alphanum[u]);
@@ -37,7 +41,7 @@ void gen_random(std::string *s, const int len, gsl_rng *r) {
 }
 
 
-// Timing function, calculate difference
+// timing function, calculate difference
 // between start and stop times with nanosec precision
 //
 timespec diff(timespec start, timespec end)
@@ -52,10 +56,18 @@ timespec diff(timespec start, timespec end)
     }
     return temp;
 }
-void print_time(timespec t) {
-    long long int nsec = (t.tv_sec*1000000000 + t.tv_nsec)/ITERATIONS;
+timespec starttimer() {
+    timespec start;
+    clock_gettime(clock_realtime, &start);
+    return start;
+}
+void stoptimer(timespec start) {
+    timespec stop;
+    clock_gettime(clock_realtime, &stop);
+    long long int nsec = (diff(start, stop).tv_sec*1000000000 + diff(start, stop).tv_nsec)/(iterations);
     long long int sec = nsec/1000000000;
     std::printf("%lld:%09lld\n", sec, nsec % 1000000000);
+
 }
 #ifdef TRIE
     typedef seq_bursttrie<std::string, std::string*, BUCKETTYPE, seq_node> testStruct;
@@ -82,19 +94,15 @@ int main() {
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
 
-    int len = (rand() % 12) + 1;
     for(int i = 0; i < TESTSIZE; i++) {
         std::string *st = new std::string();
-        gen_random(st, len, r);
+        gen_random(st,r);
         keys[i] = st;
     }
     gsl_rng_free(r);
 
     // Start timer
-    timespec start, stop, temp;
-    temp.tv_sec = 0;
-    temp.tv_nsec = 0;
-    clock_gettime(CLOCK_REALTIME, &start);
+    timespec start = startTimer();
     for(int j = 0; j < ITERATIONS; j++) {
         // Insert into datastructure
         if(t != NULL) delete(t);
@@ -107,13 +115,13 @@ int main() {
         }
 
     }
-    clock_gettime(CLOCK_REALTIME, &stop);
-    std::cout<<"Inserted "<<TESTSIZE<<" string:pointer pairs in an average of ";
-    temp.tv_sec  = diff(start, stop).tv_sec;
-    temp.tv_nsec = diff(start, stop).tv_nsec;
-    print_time(temp);
+    std::cout << "Inserted " << TESTSIZE << " entries in an average of ";
+    stopTimer(start);
+    std::cout << "Created "<<*NODE_COUNT << " nodes!"<<std::endl;
+    std::cout << "Created "<<*BUCKET_COUNT << " buckets!"<<std::endl;
+    std::cout << "Destroyed "<<*BUCKETS_DESTROYED << " buckets!"<<std::endl;
 
-    clock_gettime(CLOCK_REALTIME, &start);
+    start = startTimer();
     // Search in datastructure
     for(int j = 0; j < ITERATIONS; j++) {
         for(int i = 0; i < TESTSIZE; i++) {
@@ -129,11 +137,8 @@ int main() {
             }
         }
     }
-    clock_gettime(CLOCK_REALTIME, &stop);
-    std::cout<<"Searched "<<TESTSIZE<<" string:pointer pairs in an average of ";
-    temp.tv_sec  = diff(start, stop).tv_sec;
-    temp.tv_nsec = diff(start, stop).tv_nsec;
-    print_time(temp);
+    std::cout<<"Searched "<<TESTSIZE<<" entires in an average of ";
+    stopTimer(start);
 
     for(int i = 0; i < TESTSIZE; i++) {
        delete(keys[i]);
