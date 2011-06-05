@@ -39,32 +39,32 @@ class ts_locked_node_2 {
         bucket *successor(int i) {
             i = succ_int(i);
             for(i = std::max(_min,i); i <= _max; i++) {
-                if(children[i].tag == __node_child_bucket)
+                if(children[i].tag == __NODE_CHILD_BUCKET)
                     return children[i].b;
-                else if(children[i].tag == __node_child_node)
+                else if(children[i].tag == __NODE_CHILD_NODE)
                     return children[i].n->successor(0);
             }
             return NULL;
         }
         int succ_int(int i) {
             for(i = std::max(_min,i); i <= _max; i++) {
-                if(children[i].tag != __node_child_unused)
+                if(children[i].tag != __NODE_CHILD_UNUSED)
                     break;
             }
             return i;
         }
         bucket *predecessor(int c) {
             int i = pred_int(c);
-            if(children[i].tag == __node_child_bucket)
+            if(children[i].tag == __NODE_CHILD_BUCKET)
                 return children[i].b;
-            else if(children[i].tag == __node_child_node)
-                return children[i].n->predecessor(nodesize);
+            else if(children[i].tag == __NODE_CHILD_NODE)
+                return children[i].n->predecessor(NODESIZE);
             return NULL;
         }
         int pred_int(int c) {
             int i = c;
             for(i = std::min(_max,i); i >= _min; i--) {
-                if(children[i].tag != __node_child_unused)
+                if(children[i].tag != __NODE_CHILD_UNUSED)
                     break;
             }
             return i;

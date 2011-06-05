@@ -21,19 +21,20 @@ int *NODE_COUNT = new int(0);
 // Generate a random string with a given alphabet,
 // and place it in the given string
 //
-void gen_random(std::string *s, const int len, gsl_rng *r) {
-    /*static const char alphanum[] =
+void gen_random(std::string *s, gsl_rng *r) {
+    static const char alphanum[] =
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz"; */
+        "abcdefghijklmnopqrstuvwxyz";
+    int len = gsl_rng_uniform_int(r, 7)+5;
     for(int i = 0; i < len; i++) {
-        char u = gsl_rng_uniform_int(r, 126) + 1;
-        s->replace(i, 1,1, (char)u); //alphanum[u]);
+        int u = gsl_rng_uniform_int(r, sizeof(alphanum));
+        s->push_back(alphanum[u]);
     }
 }
 
 
-// Timing function, calculate difference
+// timing function, calculate difference
 // between start and stop times with nanosec precision
 //
 timespec diff(timespec start, timespec end)
@@ -92,10 +93,9 @@ int main() {
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
 
-    int len = (rand() % 12) + 1;
     for(int i = 0; i < TESTSIZE; i++) {
-        std::string *st = new std::string("aaaaaaaaaa");
-        gen_random(st, len, r);
+        std::string *st = new std::string();
+        gen_random(st, r);
         v->v->push_back( st );
     }
     gsl_rng_free(r);

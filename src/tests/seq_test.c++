@@ -2,6 +2,8 @@ int *BUCKET_COUNT = new int(0);
 int *BUCKETS_DESTROYED = new int(0);
 int *NODE_COUNT = new int(0);
 #ifdef TRIE
+#include "../include/atomic_ops.h"
+#define atomic (volatile AO_t*)
 #include "../seq/seq_bursttrie.c++"
 #include "../seq/seq_sorted_bucket.c++"
 #include "../seq/seq_unsorted_bucket.c++"
@@ -56,15 +58,15 @@ timespec diff(timespec start, timespec end)
     }
     return temp;
 }
-timespec starttimer() {
+timespec startTimer() {
     timespec start;
-    clock_gettime(clock_realtime, &start);
+    clock_gettime(CLOCK_REALTIME, &start);
     return start;
 }
-void stoptimer(timespec start) {
+void stopTimer(timespec start) {
     timespec stop;
-    clock_gettime(clock_realtime, &stop);
-    long long int nsec = (diff(start, stop).tv_sec*1000000000 + diff(start, stop).tv_nsec)/(iterations);
+    clock_gettime(CLOCK_REALTIME, &stop);
+    long long int nsec = (diff(start, stop).tv_sec*1000000000 + diff(start, stop).tv_nsec)/(ITERATIONS);
     long long int sec = nsec/1000000000;
     std::printf("%lld:%09lld\n", sec, nsec % 1000000000);
 

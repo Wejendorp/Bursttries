@@ -1,9 +1,9 @@
 DIR=$(shell pwd)
 CC=g++
 CFLAGS=-g -I$(DIR)/include -L$(DIR)/lib -lgsl -lgslcblas -lrt -Wall \
-		-DTESTSIZE=1000000 -DITERATIONS=3
+		-DTESTSIZE=30000000 -DITERATIONS=1
 DATE = $(shell date +'%y%m%d%H%M%S')
-GSL_RNG_SEED=$(DATE)
+GSL_RNG_SEED=110604190045 #$(DATE)
 GSL_RNG_TYPE=taus
 
 ENV= GSL_RNG_SEED=$(GSL_RNG_SEED) GSL_RNG_TYPE=$(GSL_RNG_TYPE)
@@ -13,7 +13,8 @@ BUCKETTYPES = map btree sorted unsorted
 BUCKETSIZES = 32 64 128 256 512 1024 2048 4096
 NUMTHREADS  = 1 2 4 8 16 32
 
-all: seq_run ts_run
+all: seq_tests ts_tests
+run: seq_run ts_run
 
 # Sequential tests
 seq_run: seq_tests
@@ -30,7 +31,8 @@ seq_trie: tests/seq_test.c++
 	$(foreach bsize, $(BUCKETSIZES), $(foreach btype, $(BUCKETTYPES), $(seq_exec)))
 
 # Threaded tests
-ts_run: ts_random ts_shakespeare
+ts_tests: ts_random ts_shakespeare
+ts_run: ts_tests
 	cat /proc/cpuinfo > ./logs/ts_$(DATE).log
 	$(ENV) find ./tests/bin/ts/ -type f -executable | sed 's/.*/time -v & >> .\/logs\/ts_$(DATE).log 2>\&1/g' | /bin/sh
 
