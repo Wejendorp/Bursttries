@@ -1,0 +1,82 @@
+\chapter{Introduction}
+
+\section{Problem definition}
+How can the burst trie be parallelised, in a way that allows building and searching
+the structure faster than an equivalent serial singlethreaded approach?
+What kind of overhead does it create, and does this influence relative
+performance between the individual variants of the structure?
+
+
+\section{Background}
+%Define: What is a trie?
+A trie is a datastructure for storing keys based on their prefixes.
+It is also known as a prefix-tree. The idea is equivalent to that of
+"most significant digit" (MSD-)radix sort.
+
+Each level in the tree reads a prefix of the key and branches accordingly.
+A trie working on strings with the ASCII alphabet will thus have a branching
+factor of 128. Each read character corresponds to a branch and goes down another
+level until finding the leaf matching the requested key or terminating
+unsuccesfully. A trie is as deep as the longest key that it contains, since
+each level removes a character from the key. It is this bound that newer trie
+variants attempt to improve, without compromising lookup efficiency.
+
+%Define: What is the idea of a burst trie?
+Following the radix sort analogy, the regular trie uses radix-sort until
+reaching the trivial case, with no boundary for using other sorting methods.
+The burst trie, on the other hand, uses a limit for employing other methods
+based on the element count. In other words a burst trie differs from a regular
+trie by the fact that it compresses the elements into "bucket" structures when
+there are few of them in a particular subtree. Each bucket is then assigned a
+capacity. When inserting elements into a burst trie, the structure finds the
+corresponding bucket and puts the element in it. If the bucket exceeds its
+capacity it "bursts", creating a new parenting node and redistributing the
+elements into buckets under it, based on the next part of the prefix. As such,
+each bucket is uniquely determined by its prefix (or path), and the elements in
+each bucket have the same prefix, making it possible to discard this
+information to save space.
+This is what makes it possible for the trie to be more space efficient than an
+equivalent hashmap, or comparison-based tree structure.
+%Weaknesses...
+
+
+Although the burst trie has been studied with respect to cache optimization, no
+work has been done in parallelising the structure in a way that allows
+insertions and deletions faster than the sequential implementation, while
+remaining space efficient\cite{Askitis2010}. This means evaluating the sacrifices needed to make
+the structure threadsafe.
+
+Parallelism in general!!
+inspired by ACM .. something.. I want to make lockfree!!
+
+
+
+% Why are burst tries nice?
+Burst tries have been shown to be faster and more space efficient than
+compari\-son-based datastructures such as B-trees and red-black trees
+when used on integer data.
+For strings the burst trie is more efficient than trees, while unlike
+hash-tables allowing efficient iteration of sorted keys with minor modifications.
+In that context it would be interesting to see how versatile the structure is,
+if it is able to compete with other \textit{(multi-)set} structures and heaps with
+relevant modifications.
+
+The original burst trie uses linked lists for the containers, but this has been
+shown to be inefficient in a modern cache hierachy. There has been done research
+in different ways to improve the structure, by replacing the bucket structure.
+Nash and Gregg have done work on optimizing the trie itself, using so-called
+level- and path-compression.
+
+In an earlier course, the author has done work on the burst trie as an Integer
+datastructure in cooperation with Niels Bjørn Bugge Grathwohl.
+
+% Multithreading!!
+While maintaining optimizations for caching remains important, modern processor
+scaling primarily focuses on multithreading, making it increasingly important
+to create efficient multi-threaded datastructures and algorithms.
+To the author's knowledge, no work has been done on parallelising the structure
+for modern multi-core processors, as this was left open by Askitis and Sinha. REFERENCE
+\fxnote{REFERENCES!}
+%//TODO References
+
+

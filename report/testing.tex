@@ -1,0 +1,123 @@
+\chapter{Testing}
+
+\section{Test setup}
+Datasets
+
+Using the Gnu Scientific Library taus random number generator, using a predefined seed,
+30 million random strings were generated. This method was chosen to obtain a uniformly distributed
+data on a larger scale, which is 
+%GSL\_RNG\_SEED=110604190045 GSL\_RNG\_TYPE=taus /usr/bin/time -v ./tests/bin/seq/seq\_map > map\_30M.log 2>&1 
+\begin{table}[h!]
+    \centering
+    \begin{tabular}[here]{l l l l l l}
+        \hline
+        Dataset    & Distinct   & Strings      & Avg     & Size (MB)& Size (MB)\\
+                   &            &              & length  & distinct & total    \\\hline
+        30M Random & 29,990,518 & 30,000,000   & 9.00    & 228.84   & 270.00\\
+        Shakespeare&  31,229    & 340,039      & 5.56    & 0.21     & 18.91\\
+        Newsgroups & 463,302    & 6,046,538    & 7.63    & 8.19     & 44.00\\
+        \hline
+    \end{tabular}
+    \caption{Characteristics of the datasets used for insertions and self-search.}
+    \label{tab:cpucpecs}
+\end{table}
+
+
+The tests will be run on three different setups, to determine the impact of
+increased parallelism, by utilizing 2, 4 and 8 cores respectively.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}[here]{ l l l l }
+        \hline
+                  & Intel \\\cline{2-4}
+                  & Core 2 Duo T9300 & Core i7-950  & Xeon E5420 \\ \hline
+        Abbrevation & C2D & i7 & Xeon \\ 
+        CPU speed   & 2.50 GHz & 3.06 GHz & 2.50 GHz \\
+        No. CPUs    & 1 & 1 & 2 \\
+        Phys. Cores & 2 & 4 & 8 \\
+        Virt. Cores & 0 & 4 & 0 \\
+        L1/L2/L3 size(kB) & 64/6.144 & 128/1024/8.192 & 128/12.288\\
+        L1/L2 cacheline(B) & 64/64 & 64/64 & 64/64\\
+        %TLB entries & \\
+        Memory (MB) & 4,096 & 8,192 & 32,768 \\
+        Memory type & DDR2 800 & DDR3 1333 & DDR2 800 \\a
+        Memory channels & 2 & 3 & 2 \\
+        %Memory latency  & 
+        Linux Kernel    & 2.6.38 & 2.6.38 & 2.6.36 \\
+        Processor type  & 64-bit & 64-bit & 64-bit \\\hline
+    \end{tabular}
+    \caption{Characteristics of the used testing machines.}
+    \label{tab:cpucpecs}
+\end{table}
+
+The Core 2 Duo machine is a Dell Laptop, chosen for its dual-core CPU.
+The Xeon machine is a server workstation at DIKU, with two Xeon E5420 CPUs,
+but is shared with many other students, which means that the workload
+under testing was not under our control. The i7 machine was used for its
+quad-core cpu, and with hyperthreading showing up as 8 cores, where 4 of them
+are virtual, provides an interesting comparison with the Xeon machine, which
+has 8 physical cores.
+
+The i7 machine was used for primary testing.
+
+\section{Sequential tests}
+For assessing the relative performances under a sequential environment, first a
+baseline measurement of the {\keyword STL::Map} structure is made, on each of
+the test machines.
+
+\subsection{Uniformly distributed data}
+Base result: MAP! Testsize of 30Million strings, generating words of length between 7 and 12 characters,
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}[here]{ l l l l }
+        \hline
+        Machine   & Insertion time & Self-search time & Memory  \\\hline
+        C2D       &                &                  &         \\\hline
+        i7        &                &                  & ...     \\\hline
+        Xeon      &                &                  & ...     \\\hline
+    \end{tabular}
+    \caption{Base results for the STL::Map container, using the 30M random strings set.}
+    \label{tab:cpucpecs}
+\end{table}
+
+
+%In order to get some useful results here I need to:
+%\begin{itemize}
+%    %\item Clean up seq classes based on ts work template<template!
+%    %\item Implement remove!! - if req additions - keep original.
+%    \item Implement iterators - keep a copy of original. Document additions.
+%    %\item Extend makefile with all test setups - sizes/datasets.
+%    %\item Fix timing function - cache misses, time, memory consumption
+%\end{itemize}
+
+\subsection{Shakespeare dataset}
+The shakespeare dataset is chosen for its real-world character distribution, and will
+therefore present a good test-case for dictionary use of the structure.
+\subsection{aa}
+
+\section{Parallel scaling}
+foreach buckettype: vary sizes, locking method,
+                    number of threads, number of cores
+
+Amdahls law.
+
+False sharing!! [REF]
+
+The controlled data tests require a separate timing function in order to time
+the datastructures only, since GSL for instance, requires a lot of time in the
+kernel, rendering timing of the entire test a somewhat useless metric for
+relative performances.
+
+GSL Random number generation includes gaussian distributions, uniform
+distributions and a number of others, letting us test the structure under
+different input distributions.
+
+The Shakespeare dataset requires a threadsafe multiple-readers structure to
+allow the threads to concurrently extract words from the dataset after first
+reading them into memory.
+
+I have therefore implemented a simple CREW (concurrent read exclusive write)
+vector for this purpose. 
+

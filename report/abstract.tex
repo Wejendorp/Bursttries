@@ -1,0 +1,28 @@
+\begin{abstract}
+With the scaling of cpus increasingly focusing on increases in number of cores,
+highly parallelizable datastructures are of increasing importance.
+
+This project seeks to explore the implementation tradeoffs
+in parallelising the burst trie datastructure, which has been shown to be on
+par with hashmaps in both speed and space consumption.
+The burst trie provides fast sorted access to strings and integers, however
+different bucket types have different advantages and disadvantages.
+
+By comparing different tradeoffs needed to implement partial functionalities,
+specialized datastructures are developed, depending on the level of parallelism,
+distribution of insertions/searches and removals and distribution of inserted data.
+This means evaluating the modifications needed to make the trie work as a
+threadsafe set-, multiset- or map container.
+
+%TODO
+semi-conclusion!?
+Via adding few pointers 
+
+\end{abstract}
+
+
+%\section{Problem definition}
+%How can the burst trie be parallelised, in a way that allows building and searching
+%the structure faster than an equivalent serial singlethreaded approach?
+%What kind of overhead does it create, and does this influence relative
+%performance between the individual variants of the structure?

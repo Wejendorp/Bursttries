@@ -1,0 +1,44 @@
+\documentclass[a4paper, oneside, draft]{memoir}
+
+\usepackage[vlined, ruled, linesnumbered]{algorithm2e}
+\usepackage{amsmath}
+\usepackage{fancyref} % Better reference.
+
+\usepackage{pdflscape} % Gør landscape-environmentet tilgængeligt
+\usepackage{fixme} % Indsæt "fixme" noter i drafts.
+\usepackage{hyperref} % Indsæter links (interne og eksterne) i PDF
+
+\usepackage[format=hang]{caption,subfig}
+\usepackage{graphicx}
+\usepackage{stmaryrd}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{ulem} % \sout - strike-through
+\usepackage{tikz}
+\renewcommand{\ttdefault}{txtt} % Bedre typewriter font
+\newcommand{\keyword}{\ttfamily}
+
+\setcounter{secnumdepth}{-1} % Sæt overskriftsnummereringsdybde. Disable = -1.
+\newcommand{\projecttitle}{Implementing and parallelising Bursttries}
+
+\title{\projecttitle}
+\author{Jacob Wejendorp}
+%\renewcommand{\bibsection}{\section*{References}}
+\begin{document}
+\maketitle
+\input{abstract.tex}
+\clearpage
+
+\tableofcontents*
+\clearpage
+
+\input{introduction.tex}
+\input{implementation.tex}
+\input{testing.tex}
+
+
+\nocite{Badr:2005, Dorji:2010, Nash2008, wejendorpgrathwohl2010, Heinz2002}
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}
