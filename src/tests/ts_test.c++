@@ -141,11 +141,7 @@ int main() {
         v->reset();
         // Create writer-threads
         for(int j = 0; j < NUM_THREADS; j++) {
-#ifdef DATASET
             threads[j]->read(false); // disable strict
-#else
-            threads[j]->read(true);
-#endif
         }
         // Join threads
         for(int j = 0; j < NUM_THREADS; j++) {

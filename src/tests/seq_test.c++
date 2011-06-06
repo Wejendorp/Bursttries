@@ -132,7 +132,7 @@ int main() {
 #else
             std::string * res = (*t->find(*(keys[i]))).second;
 #endif
-            if (keys[i] != res) {
+            if (*(keys[i]) != *res) {
                 std::cout << "Mismatched search for "<< *(keys[i])<<std::endl;
                 //std::cout << "Expected " << keys[i] << std::endl;
                 //std::cout << "got " << t->find(*(keys[i])) << std::endl;

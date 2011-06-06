@@ -38,7 +38,7 @@ class ts_locked_node_2 {
 
         bucket *successor(int i) {
             i = succ_int(i);
-            for(i = std::max(_min,i); i <= _max; i++) {
+            if(i < NODESIZE) {
                 if(children[i].tag == __NODE_CHILD_BUCKET)
                     return children[i].b;
                 else if(children[i].tag == __NODE_CHILD_NODE)
@@ -55,10 +55,12 @@ class ts_locked_node_2 {
         }
         bucket *predecessor(int c) {
             int i = pred_int(c);
-            if(children[i].tag == __NODE_CHILD_BUCKET)
-                return children[i].b;
-            else if(children[i].tag == __NODE_CHILD_NODE)
-                return children[i].n->predecessor(NODESIZE);
+            if(i >= 0) {
+                if(children[i].tag == __NODE_CHILD_BUCKET)
+                    return children[i].b;
+                else if(children[i].tag == __NODE_CHILD_NODE)
+                    return children[i].n->predecessor(NODESIZE);
+            }
             return NULL;
         }
         int pred_int(int c) {
