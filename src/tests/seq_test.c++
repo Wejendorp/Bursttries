@@ -15,7 +15,9 @@ int *NODE_COUNT = new int(0);
 #include <map>
 #include <string>
 #include <stdlib.h>
-#include <cstdio> //printf
+#include <ctime>
+#include <cstdio>
+#include <algorithm>
 #include <gsl/gsl_rng.h> // random number generator
 #include <time.h>
 #include <iostream>
@@ -63,13 +65,18 @@ timespec startTimer() {
     clock_gettime(CLOCK_REALTIME, &start);
     return start;
 }
-void stopTimer(timespec start) {
+timespec addTimers(timespec sum, timespec start) {
     timespec stop;
     clock_gettime(CLOCK_REALTIME, &stop);
-    long long int nsec = (diff(start, stop).tv_sec*1000000000 + diff(start, stop).tv_nsec)/(ITERATIONS);
+    timespec temp = diff(start, stop);
+    sum.tv_sec += temp.tv_sec;
+    sum.tv_nsec += temp.tv_nsec;
+    return sum;
+}
+void printTimer(timespec start) {
+    long long int nsec = (start.tv_sec*1000000000 + start.tv_nsec)/(ITERATIONS);
     long long int sec = nsec/1000000000;
     std::printf("%lld:%09lld\n", sec, nsec % 1000000000);
-
 }
 #ifdef TRIE
     typedef seq_bursttrie<std::string, std::string*, BUCKETTYPE, seq_node> testStruct;
@@ -88,6 +95,7 @@ int main() {
     SHOW_DEFINE(BUCKETTYPE);
     SHOW_DEFINE(BUCKETSIZE);
 
+#ifndef DATASET
     // Generate random numbers 
     const gsl_rng_type * T;
     gsl_rng * r;
@@ -98,34 +106,40 @@ int main() {
 
     for(int i = 0; i < TESTSIZE; i++) {
         std::string *st = new std::string();
-        gen_random(st,r);
+        gen_random(st, r);
         keys[i] = st;
     }
     gsl_rng_free(r);
 
+#else
+    std::ifstream fin("./datasets/shakespeare.txt");
+    std::string word;
+    while(fin.good()) {
+        fin >> word;
+        std::string *st = new std::string(word);
+        keys[i] = st;
+    }
+#endif
+    std::srand(std::time(0));
+    std::random_shuffle(keys.begin(), keys.end());
+
     // Start timer
-    timespec start = startTimer();
+    timespec insert, search;
+    insert.tv_sec = 0; insert.tv_nsec = 0;
+    search.tv_sec = 0; search.tv_nsec = 0;
+
     for(int j = 0; j < ITERATIONS; j++) {
-        // Insert into datastructure
         if(t != NULL) delete(t);
         t = new testStruct();
+        timespec start = startTimer();
 
+        // Insert into datastructure
         for(int i = 0; i < TESTSIZE; i++) {
             std::string *st = keys[i];
             t->insert(std::make_pair<std::string, std::string*>(*st, st));
-            //std::cout << "inserting " << *st << " == " << st <<std::endl;
         }
-
-    }
-    std::cout << "Inserted " << TESTSIZE << " entries in an average of ";
-    stopTimer(start);
-    std::cout << "Created "<<*NODE_COUNT << " nodes!"<<std::endl;
-    std::cout << "Created "<<*BUCKET_COUNT << " buckets!"<<std::endl;
-    std::cout << "Destroyed "<<*BUCKETS_DESTROYED << " buckets!"<<std::endl;
-
-    start = startTimer();
-    // Search in datastructure
-    for(int j = 0; j < ITERATIONS; j++) {
+        insert = addTimers(insert, start);
+        start = startTimer();
         for(int i = 0; i < TESTSIZE; i++) {
 #ifdef TRIE
             std::string *res = t->find(*(keys[i]));
@@ -134,13 +148,18 @@ int main() {
 #endif
             if (*(keys[i]) != *res) {
                 std::cout << "Mismatched search for "<< *(keys[i])<<std::endl;
-                //std::cout << "Expected " << keys[i] << std::endl;
-                //std::cout << "got " << t->find(*(keys[i])) << std::endl;
             }
         }
+        search = addTimers(search, start);
+        std::random_shuffle(keys.begin(), keys.end());
     }
+    std::cout << "Inserted " << TESTSIZE << " entries in an average of ";
+    printTimer(insert);
+    std::cout << "Created "<<*NODE_COUNT << " nodes!"<<std::endl;
+    std::cout << "Created "<<*BUCKET_COUNT << " buckets!"<<std::endl;
+    std::cout << "Destroyed "<<*BUCKETS_DESTROYED << " buckets!"<<std::endl;
     std::cout<<"Searched "<<TESTSIZE<<" entires in an average of ";
-    stopTimer(start);
+    printTimer(search);
 
     for(int i = 0; i < TESTSIZE; i++) {
        delete(keys[i]);

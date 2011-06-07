@@ -9,7 +9,8 @@ int *NODE_COUNT = new int(0);
 #include <map>
 #include <string>
 #include <stdlib.h>
-#include <cstdio> //printf
+#include <ctime>
+#include <cstdio>
 #include <gsl/gsl_rng.h> // random number generator
 #include <time.h>
 #include <iostream>
@@ -54,13 +55,18 @@ timespec startTimer() {
     clock_gettime(CLOCK_REALTIME, &start);
     return start;
 }
-void stopTimer(timespec start) {
+timespec addTimers(timespec sum, timespec start) {
     timespec stop;
     clock_gettime(CLOCK_REALTIME, &stop);
-    long long int nsec = (diff(start, stop).tv_sec*1000000000 + diff(start, stop).tv_nsec)/(ITERATIONS);
+    timespec temp = diff(start, stop);
+    sum.tv_sec += temp.tv_sec;
+    sum.tv_nsec += temp.tv_nsec;
+    return sum;
+}
+void printTimer(timespec start) {
+    long long int nsec = (start.tv_sec*1000000000 + start.tv_nsec)/(ITERATIONS);
     long long int sec = nsec/1000000000;
     std::printf("%lld:%09lld\n", sec, nsec % 1000000000);
-
 }
 
 typedef ts_bursttrie<std::string, std::string*, BUCKETTYPE, NODETYPE> testStruct;
@@ -99,6 +105,7 @@ int main() {
         v->v->push_back( st );
     }
     gsl_rng_free(r);
+
 #else
     std::ifstream fin("./datasets/shakespeare.txt");
     std::string word;
@@ -108,13 +115,19 @@ int main() {
         v->v->push_back(st);
     }
 #endif
+    std::srand(std::time(0));
+    std::random_shuffle(v->v->begin(), v->v->end());
 
     // Start timer
     //
-    timespec start = startTimer();
+    // Start timer
+    timespec insert, search;
+    insert.tv_sec = 0; insert.tv_nsec = 0;
+    search.tv_sec = 0; search.tv_nsec = 0;
     for(int i = 0; i < ITERATIONS; i++) {
         v->reset();
         delete(t);
+        timespec start = startTimer();
         t = new testStruct();
         *BUCKET_COUNT = 0;
         *BUCKETS_DESTROYED = 0;
@@ -127,18 +140,10 @@ int main() {
         for(int j = 0; j < NUM_THREADS; j++) {
             threads[j]->join();
         }
-    }
-    std::cout << "Inserted " << TESTSIZE << " entries in an average of ";
-    stopTimer(start);
-    std::cout << "Created "<<*NODE_COUNT << " nodes!"<<std::endl;
-    std::cout << "Created "<<*BUCKET_COUNT << " buckets!"<<std::endl;
-    std::cout << "Destroyed "<<*BUCKETS_DESTROYED << " buckets!"<<std::endl;
-
-
-    start = startTimer();
-    // Search in datastructure
-    for(int j = 0; j < ITERATIONS; j++) {
+        insert = addTimers(insert, start);
+        // READ PROCEDURE
         v->reset();
+        start = startTimer();
         // Create writer-threads
         for(int j = 0; j < NUM_THREADS; j++) {
             threads[j]->read(false); // disable strict
@@ -147,10 +152,17 @@ int main() {
         for(int j = 0; j < NUM_THREADS; j++) {
             threads[j]->join();
         }
+        search = addTimers(search, start);
 
+        std::random_shuffle(v->v->begin(), v->v->end());
     }
+    std::cout << "Inserted " << TESTSIZE << " entries in an average of ";
+    printTimer(insert);
+    std::cout << "Created "<<*NODE_COUNT << " nodes!"<<std::endl;
+    std::cout << "Created "<<*BUCKET_COUNT << " buckets!"<<std::endl;
+    std::cout << "Destroyed "<<*BUCKETS_DESTROYED << " buckets!"<<std::endl;
     std::cout<<"Searched "<<TESTSIZE<<" entires in an average of ";
-    stopTimer(start);
+    printTimer(search);
 
 
     // Cleanup!!
