@@ -1,12 +1,12 @@
 \begin{abstract}
-With the scaling of cpus increasingly focusing on increases in number of cores,
+With the scaling of CPUs increasingly focusing on increases in number of cores,
 highly parallelizable datastructures are of increasing importance.
 
-This project seeks to explore the implementation tradeoffs
-in parallelising the burst trie datastructure, which has been shown to be on
-par with hashmaps in both speed and space consumption.
-The burst trie provides fast sorted access to strings and integers, however
-different bucket types have different advantages and disadvantages.
+This project seeks to explore the implementation tradeoffs in parallelising the
+burst trie datastructure, which has been shown to be on par with hashmaps in
+both speed and space consumption. The burst trie provides fast sorted access to
+strings and integers, however different bucket types have different advantages
+and disadvantages.
 
 By comparing different tradeoffs needed to implement partial functionalities,
 specialized datastructures are developed, depending on the level of parallelism,
@@ -14,11 +14,10 @@ distribution of insertions/searches and removals and distribution of inserted da
 This means evaluating the modifications needed to make the trie work as a
 threadsafe set-, multiset- or map container.
 
-%TODO
-semi-conclusion!?
-Via adding few pointers 
+
 
 \end{abstract}
+\fxnote{semi-conclusion!?}
 
 
 %\section{Problem definition}

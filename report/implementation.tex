@@ -2,6 +2,22 @@
 By first establishing the regular trie methods, a basis is made for evaluating
 the modifications required by the other types.
 
+In the analysis of the various containers and the general trie, the following
+notation will be used:
+% Time bounds
+\begin{table}[h!]
+    \centering
+    \begin{tabular}[here]{ l l}
+        Notation & Meaning \\ \hline
+        n       & The number of elements.\\
+        $\alpha$& The alphabet size, or node size.\\
+        b       & The bucket size.\\
+        h       & The (maximum-)height of the trie. \\
+    \end{tabular}
+    \caption{Table of the analysis notation}
+    \label{tab:notation}
+\end{table}
+
 \section{Generic Trie}
 
 \begin{algorithm}[H]
@@ -26,34 +42,11 @@ A depth-first approach is taken with deletions. The recursive call returns with
 a value, determining if changes might be needed at the higher level.
 
 
-With the nodes having $\alpha$ pointers, the memory overhead for sparse tries
-is very big.
-
-As a function of collision odds, each unique subtrie incurs $(\alpha-1) l$
-pointers of overhead for a unique substring of length $l$. As such, the total
-pointer count is anywhere up to:
-\begin{align*}
-    M(n) = O(n * (\alpha l - 1))\\
-\end{align*}
-Which will be used as baseline for comparisons.
-
-The cost of insertion is a function of the chance that a string is unique on
-each level. The first insertion has 0 chance of being non-unique, creating a
-base-case costing $\alpha$ new pointers in the created subnode.
-\[
-    T(n) = \left\{ \begin{array}{ll}
-                    (\frac{\alpha - 1}{\alpha})^m           & \text{if } n = 1 \\
-                    T(n-1) + (\frac{\alpha - 1}{\alpha})^m   & \text{if } n > 1
-                   \end{array}
-                \right.
-\]
-For the m'th insertion of an n-length word to the node.
-
 
 
 
 \section{Burst trie}
-Based on the descriptions in \cite{Nash2008}, the algorithms for search
+Based on the descriptions in \cite{Nash:2008}, the algorithms for search
 and insertion are as such:
 
 \begin{algorithm}[H]
@@ -168,7 +161,7 @@ read-lock.
 % Advantages
 The binary search trees allow for a (average case) logarithmic insertion,
 search and deletion structure. This was found to be the optimal
-bounds\cite{Nash2008}.
+bounds\cite{Nash:2008}.
 
 So the binary search trees are theoretically optimal, while having little space
 overhead.
@@ -193,10 +186,10 @@ has no overhead from preallocation.
         Delete    & $O(\log n)$ & $O(n)$ & E \\ \hline
         Find      & $O(\log n)$ & $O(n)$ & C  \\ \hline
     \end{tabular}
-    \caption{Time bounds for the bucket operations using binary search trees,
-    $n$ denoting number of elements in the bucket. Locking terms use E for
-        exclusive and C for concurrent.}
-    \label{tab:bounds:linkedlist}
+    \caption{Time bounds for the bucket operations using unbalanced binary
+    search trees, $n$ denoting number of elements in the bucket. Locking terms
+    use E for exclusive and C for concurrent.}
+    \label{tab:bounds:bst}
 \end{table}
 The find and insert operations can be kept separate from delete by using a
 read-lock.
@@ -253,7 +246,7 @@ size, and therefore define the limit on the desired bucket size.
     arrays, $n$ denoting number of elements in the bucket. Insertion might be
     linear because of dynamic resizing of the array. Locking terms use E for
         exclusive and C for concurrent.}
-    \label{tab:bounds:unsortedarray}
+    \label{tab:bounds:unsorteddynarray}
 \end{table}
 \begin{table}[h!]
     \centering
@@ -263,7 +256,7 @@ size, and therefore define the limit on the desired bucket size.
         Delete    & $O(n)$ & $O(n)$           & E \\ \hline
         Find      & $O(\log n)$ & $O(\log n)$ & C  \\ \hline
     \end{tabular}
-    \caption{Time bounds for the bucket operations using binary search trees,
+    \caption{Time bounds for the bucket operations using sorted dynamic,
     $n$ denoting number of elements in the bucket. Locking terms use E for
         exclusive and C for concurrent.}
     \label{tab:bounds:sortedarray}
@@ -298,13 +291,13 @@ Hash tables have a relatively large overhead of lookup tables and stuff...
     \centering
     \begin{tabular}[here]{ l || c | c | c}
         Operation & Average case & Worst case & Requires locking  \\ \hline
-        Insert    & $O(\log n)$ & $O(\log n)$ & E \\ \hline
-        Delete    & $O(\log n)$ & $O(\log n)$ & E \\ \hline
-        Find      & $O(\log n)$ & $O(\log n)$ & C \\ \hline
+        Insert    & $O(1)$  & $O(\log n)$ & E \\ \hline
+        Delete    & $O(1)$  & $O(\log n)$ & E \\ \hline
+        Find      & $O(1)$  & $O(\log n)$ & C \\ \hline
     \end{tabular}
-    \caption{Time bounds for the bucket operations using hashmaps,
-    $n$ denoting number of elements in the bucket. Locking terms use E for
-        exclusive and C for concurrent.}
+    \caption{Time bounds for the bucket operations using hashmaps, specifically
+    the \STL Map implementation. $n$ denoting number of elements in the
+    bucket. Locking terms use E for exclusive and C for concurrent.}
 
     \label{tab:bounds:hashmap}
 \end{table}
@@ -340,18 +333,20 @@ children are active. If a remove call results in an an empty node, it is removed
 
 Using the added {\keyword size} variable this is easily determined. However,
 the same can be determined using the {\keyword max}- and {\keyword min}
-pointers needed for the {\keyword iterator} in previous section.
+pointers needed for the {\keyword iterator} in iterator section.
 
 The {\keyword erase} function is implemented naively, meaning that contractions
 are only performed when a bucket is deleted because it's empty. The same goes
 for nodes. This means that, if all but one element is erased from a bucket,
 the entire trie path will be maintained.
 
-This fits perfectly with the initial description from \cite{Nash2008}, that
+This fits perfectly with the initial description from \cite{Nash:2008}, that
 the remove procedure is merely the insertion procedure in reverse. One could argue
 that this would also imply a reverse bursting operation. This would, however,
 require the nodes to know the number of elements in their respective subtree,
 in order to determine if the subtree can be reduced to a bucket.
+
+This issue is further addressed in the very complex Judy tries, by
 
 \subsection{Implementing iterators}
 In order to be able to iterate over the elements, each bucket will need
@@ -384,17 +379,17 @@ to avoid scanning the entire children array.
 \begin{table}[h!]
     \centering
     \begin{tabular}[here]{ l | c | c | c | c}
-        Method      & end() & Next()      & Memory cost (B) & Memory (use)(B) \\ \hline
-        Linkedlist  & $O(1)$        & $O(1 + b) $ & $8\cdot2B$      & $O(1)$ \\ \hline
-        Tree-walk 1 & $O(1)$        & $O(hc + b)$ & $0$             & $O(h)$ \\ \hline
-        Tree-walk 2 & $O(1)$        & $O(hc + b)$ & $8\cdot2B$      & $O(h)$ \\ \hline
+        Method      & begin()  & Next()           & Memory cost (B) & Memory (use)(B) \\ \hline
+        Linkedlist  & $O(1)$ & $O(1 + b) $        & $8\cdot2B$      & $O(1)$ \\ \hline
+        Tree-walk 1 & $O(1)$ & $O(h \cdot c + b)$ & $0$             & $O(h)$ \\ \hline
+        Tree-walk 2 & $O(1)$ & $O(h \cdot c + b)$ & $8\cdot2B$      & $O(h)$ \\ \hline
     \end{tabular}
     \caption{The possible options for iterator implementation, their added memory cost
         to the structure, and their memory consumption during use. Here $c$ denotes
         the size of the children array, $b$ denotes the bucket size and $h$ the height
         of the trie.}
 
-    \label{tab:bounds:linkedlist}
+    \label{tab:stats:iterator}
 \end{table}
 
 The iterator needs to find any predecessor/successor bucket, when maintaining
@@ -425,23 +420,36 @@ which leaves the following cases:
     correct left and right pointers from case 2.
 \end{enumerate}
 
-This leaves open how to implement {\keyword predecessor} and {\keyword successor}.
-In order to not go through the entire children array in the search for a
-{\keyword successor} or {\keyword predecessor}, each node keeps a max and min child pointer,
-allowing constant access to the neighboring nodes' first and last elements
-relevant for successor and predecessor search. Predecessor thus becomes a
-linear search of the current node, followed by at most $O(h)$ accesses to
-the {\keyword min} or {\keyword max} children.
+This leaves open how to implement {\keyword predecessor} and {\keyword
+successor}. In order to not go through the entire children array in the search
+for a {\keyword successor} or {\keyword predecessor}, each node keeps a
+{\keyword max} and {\keyword min} child pointer, allowing constant access to
+the neighboring nodes' first and last elements relevant for successor and
+predecessor search. Predecessor thus becomes a linear search of the current
+node, followed by at most $O(h)$ accesses to the {\keyword min} or {\keyword
+max} children.
 
-In terms of parallelism, an added locking of the buckets is required.
-If the successor bucket is always locked before the predecessor, deadlock cannot occur
-from insertions into the non-circular linked-list of buckets.
+A more efficient solution is to use a bitvector the size of the children array,
+allowing constant-time updates of the {\keyword max} and {\keyword min} pointers,
+which are otherwise dependent on a linear search of the array. For this purpose
+there exists an assembly instruction to find the first 1 bit in a DWORD.
+
+In terms of parallelism, an added locking of the buckets is required. If the
+successor bucket is always locked before the predecessor, deadlock cannot occur
+from insertions into the non-circular linked-list of buckets. This is under
+the assumption that these pointers are only locked in this way.
 
 The linked-list pointers are only accessed when creating buckets or iterating
-the list, and as such, separate locking could be used for these, to increase
-the level of potential parallelism.
+the list, and as such, separate locking could be used for these to increase
+the level of potential parallelism. The general approach with iterators and
+insertions, however, is to invalidate all iterators on insertion. As such,
+the programmer is responsible for not using an invalidated iterator, as
+the behavior is undefined.
 
+\clearpage
 \section{Parallelisation}
+\fxnote{Rewrite!!!}
+%%%%%%%%%%%%% REWRITE
 The primary objective is to avoid data corruption, while allowing several
 threads to access the structure at once. For this there are a few schemes with
 their respective benefits and drawbacks. Some allow only very little or no
@@ -453,24 +461,34 @@ A CREW model is easily implemented using a global lock on the structure, which
 together with a reference-counter for ongoing searches will allow for the
 desired behavior. That is, the searches check the lock state before entering,
 and if the structure is not locked, they increase the reference counter,
-setting the structure in read-mode.
+setting the structure in read-mode. This is the simplest form of locking.
+Since the \STL containers allow only concurrent reads, not writes, exclusive
+write-access is needed, limiting the insertions to be sequential.
 
-
+%%%%%%%%%%%%%%%%
 If it is considered acceptable to have greater overhead from the locks, each
-branch could have its own locking, such that only the branch being altered
+node can have its own locking, such that only the branch being altered
 leaves searches in a waiting state. As such, each level in the trie incurs a
 constant overhead, checking the locks before accessing.
 
+
+
+
+
 The algorithm will unfortunately be serial until the lookup in the bucket
 structure, which can, depending on the chosen bucket structure, be
-paralellised. This means that $n$ searches can be performed in $O(l+b)$ time,
+paralellised. This means that $n$ searches can be performed in $O(h+b)$ time,
 where $b$ is variable on chosen method for bucket search, but that if
 simultanious insertions are performed, the insertion can possibly delay all
-other operations.
+other operations. 
+
+A node is locked during insertion, since changes can be made to the children
+array.
 
 
 
 \subsection{Avoiding locks}
+% Still interesting!
 Insertions consist of two phases, the bucket insertion, and the possible
 bursting. Bursting can be made dynamically parallel up to a factor of $O(b)$ by
 using one thread for each element in the queue, and relying on the recursive
@@ -480,9 +498,11 @@ distribution of the nodes. That is, the only case where the elements will cause
 further bursting is if they are identical on the next part of the key, which
 has a $\frac{1}{\alpha^b}$ probability.
 
-What if the buckets { grew exponentially} - that would let the bursting be
+What if the buckets grew as the trie got deeper - that would let the bursting be
 guaranteed constant, since $b$ elements cannot possibly cause a burst of a
 $b*a$ capacity container, with $a > 1$.
+
+
 
 
 I postulate, however, that the structure can be made parallel using a lock-free
@@ -495,7 +515,10 @@ Thus, the bursting thread redistributes the elements in a ghost node, which is
 only visible to the trie upon this pointer switch. There might, however be
 active searches in the old bucket, which means the bucket needs a reference
 counter, which the bursting thread will then have to wait for to become zero.
-Then the bucket is removed. The bucket is hereby used as a queue for the
+Alternatively the responsibility can be switched to the reading thread, by the
+bursting resulting in a flagging of the bucket.
+
+The bucket is removed. The bucket is hereby used as a queue for the
 insertion into the new node, and can be searched during this time, if the
 elements are copied instead of removed.
 
@@ -522,7 +545,7 @@ the form of a linked list, which can easily be maintained atomically. Searches
 will then have to look at both the linked list and the bucket, but this could
 result in $O(\log b + i)$ time instead of $O(b+i)$.
 
-{ Note:} If any  of the STL containers are used within the trie, they will
+{ Note:} If any  of the \STL containers are used within the trie, they will
 have to be locked on writing, since the STL containers are not thread-safe by
 design.
 

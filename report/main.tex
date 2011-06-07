@@ -1,4 +1,4 @@
-\documentclass[a4paper, oneside, draft]{memoir}
+\documentclass[a4paper, oneside]{report}
 
 \usepackage[vlined, ruled, linesnumbered]{algorithm2e}
 \usepackage{amsmath}
@@ -6,17 +6,18 @@
 
 \usepackage{pdflscape} % Gør landscape-environmentet tilgængeligt
 \usepackage{fixme} % Indsæt "fixme" noter i drafts.
-\usepackage{hyperref} % Indsæter links (interne og eksterne) i PDF
+%\usepackage{hyperref} % Indsæter links (interne og eksterne) i PDF
 
 \usepackage[format=hang]{caption,subfig}
 \usepackage{graphicx}
-\usepackage{stmaryrd}
+%\usepackage{stmaryrd}
 \usepackage{amssymb}
-\usepackage{listings}
-\usepackage{ulem} % \sout - strike-through
-\usepackage{tikz}
+%\usepackage{listings}
+%\usepackage{ulem} % \sout - strike-through
+%\usepackage{tikz}
 \renewcommand{\ttdefault}{txtt} % Bedre typewriter font
 \newcommand{\keyword}{\ttfamily}
+\newcommand{\STL}{STL (C++ Standard Template Library)}
 
 \setcounter{secnumdepth}{-1} % Sæt overskriftsnummereringsdybde. Disable = -1.
 \newcommand{\projecttitle}{Implementing and parallelising Bursttries}
@@ -36,8 +37,6 @@
 \input{implementation.tex}
 \input{testing.tex}
 
-
-\nocite{Badr:2005, Dorji:2010, Nash2008, wejendorpgrathwohl2010, Heinz2002}
 \bibliographystyle{plain}
 \bibliography{bibliography}
 

@@ -34,49 +34,67 @@ capacity it "bursts", creating a new parenting node and redistributing the
 elements into buckets under it, based on the next part of the prefix. As such,
 each bucket is uniquely determined by its prefix (or path), and the elements in
 each bucket have the same prefix, making it possible to discard this
-information to save space.
-This is what makes it possible for the trie to be more space efficient than an
-equivalent hashmap, or comparison-based tree structure.
-%Weaknesses...
-
-
-Although the burst trie has been studied with respect to cache optimization, no
-work has been done in parallelising the structure in a way that allows
-insertions and deletions faster than the sequential implementation, while
-remaining space efficient\cite{Askitis2010}. This means evaluating the sacrifices needed to make
-the structure threadsafe.
-
-Parallelism in general!!
-inspired by ACM .. something.. I want to make lockfree!!
-
-
+information to save space. This is what makes it possible for the trie to be
+more space efficient than an equivalent hashmap, or comparison-based tree
+structure.
 
 % Why are burst tries nice?
 Burst tries have been shown to be faster and more space efficient than
-compari\-son-based datastructures such as B-trees and red-black trees
-when used on integer data.
-For strings the burst trie is more efficient than trees, while unlike
-hash-tables allowing efficient iteration of sorted keys with minor modifications.
-In that context it would be interesting to see how versatile the structure is,
-if it is able to compete with other \textit{(multi-)set} structures and heaps with
-relevant modifications.
+compari\-son-based datastructures such as B-trees and red-black trees when used
+on integer data. For strings the burst trie is more efficient than trees, while
+unlike hash-tables allowing efficient iteration of sorted keys with minor
+modifications. In that context it would be interesting to see how versatile the
+structure is, if it is able to compete with other {\keyword (multi-)set}
+structures and heaps with relevant modifications.
 
 The original burst trie uses linked lists for the containers, but this has been
 shown to be inefficient in a modern cache hierachy. There has been done research
 in different ways to improve the structure, by replacing the bucket structure.
 Nash and Gregg have done work on optimizing the trie itself, using so-called
-level- and path-compression.
+level- and path-compression.\cite{Nash:2008}
 
 In an earlier course, the author has done work on the burst trie as an Integer
-datastructure in cooperation with Niels Bjørn Bugge Grathwohl.
+datastructure in cooperation with Niels Grathwohl. Here, a simplistic
+bit-string approach was used to allow different datatypes in the
+branching.\cite{Wejendorp:2010}
 
 % Multithreading!!
 While maintaining optimizations for caching remains important, modern processor
 scaling primarily focuses on multithreading, making it increasingly important
 to create efficient multi-threaded datastructures and algorithms.
 To the author's knowledge, no work has been done on parallelising the structure
-for modern multi-core processors, as this was left open by Askitis and Sinha. REFERENCE
-\fxnote{REFERENCES!}
-%//TODO References
+for modern multi-core processors, as this was left open by Askitis and Sinha.
+\cite{Askitis:2010}
 
+%Weaknesses...
+Although the burst trie has been studied with respect to cache optimization, no
+work has been done in parallelising the structure in a way that allows
+insertions and deletions faster than the sequential implementation, while
+remaining space efficient\cite{Askitis:2010}. This means evaluating the
+sacrifices needed to make the structure threadsafe; the number of locks,
+indicator variables and the like.
 
+Parallelism in general is a very complex issue, with cache alignment having a
+potentially large impact on performance, from so-called false sharing
+\cite{Shavit:2011}. This phenomenon occurs when two cpus operate on the same
+memory region, but on independent data, and is the unnecessary synchronization
+of cachelines between CPUs.
+
+Another area of interest is minimal locking, which will decrease the amount of
+syncrhonization between threads. The standard datastructures of C++ are all
+threadsafe in terms of concurrent reads, but not writes. As such, a simple
+read/write lock can be used to wrap the structure, causing forced sequential
+writing, while allowing multiple readers. [Pthread reference] When locks are
+used, the scheduler must guarantee that the threads holding the locks are not
+preempted. Otherwise the performance of all waiting threads will suffer. A
+solution to this is to try and design a lock-free implementation.
+
+What makes lock-free implementation difficult is potential race conditions from
+data dependencies. This is attempted to be resolved using a
+mixture of so-called atomic operations, in combination with compare-and-set
+(CAS) and contention. Using this method, one operation will always succeed
+for every time another fails, and progress is guaranteed regardless of
+    what the scheduler does.\cite{Shavit:2011} It is therefore of great interest
+    to investigate ways to make the trie lock-free.
+Doing so will also ensure operations not being limited in terms of parallelisation
+to a factor of the trie breadth at a given level (per-node parallel).
