@@ -1,6 +1,6 @@
 \begin{abstract}
-With the scaling of CPUs increasingly focusing on increases in number of cores,
-highly parallelizable datastructures are of increasing importance.
+With the scaling of CPUs more focusing on increases in the number of cores, highly
+parallelizable data structures are of increasing importance.
 
 This project seeks to explore the implementation tradeoffs in parallelising the
 burst trie datastructure, which has been shown to be on par with hashmaps in
@@ -9,19 +9,16 @@ strings and integers, however different bucket types have different advantages
 and disadvantages.
 
 By comparing different tradeoffs needed to implement partial functionalities,
-specialized datastructures are developed, depending on the level of parallelism,
-distribution of insertions/searches and removals and distribution of inserted data.
-This means evaluating the modifications needed to make the trie work as a
-threadsafe set-, multiset- or map container.
+specialized data structures are developed. Depending on the level of parallelism,
+distribution of insertions/searches and removals, and the distribution of the
+inserted data, different variations excel. This means evaluating the
+modifications needed to make the trie work as a threadsafe set-, multiset- or
+map container.
 
+% REWRITE
+In this project a simple locked burst trie is implemented, allowing 
+speed-ups of up to a factor ? for insertions, and a factor 6 for 
+searches.
 
 
 \end{abstract}
-\fxnote{semi-conclusion!?}
-
-
-%\section{Problem definition}
-%How can the burst trie be parallelised, in a way that allows building and searching
-%the structure faster than an equivalent serial singlethreaded approach?
-%What kind of overhead does it create, and does this influence relative
-%performance between the individual variants of the structure?
