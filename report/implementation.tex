@@ -55,7 +55,7 @@ and insertions, searches and removals are all $O(h)$.
 The burst trie uses the same basic methods as outlined above. The child check
 "c" is extended to cover two kinds of children instead of just nodes. The
 descent condition of the regular trie is to move down until end of string, while
-the burst trie will also altered to stop also when a bucket is found or created.
+the burst trie will also stop when a bucket is found or created.
 The default action for a non-existing child is to create a bucket. The unread part
 of the key is then inserted into the bucket, and the bucket is burst if needed.
 
@@ -88,20 +88,21 @@ of the key is then inserted into the bucket, and the bucket is burst if needed.
 Because of the added bursting and bucket insertion, the time complexity of
 insertion becomes $O(h+I_b\cdot b)$, where $I_b$ denotes insertion time of the
 bucket. Bursting is linear in bucket size, since insertions into an empty node
-are constant since the height is 1, and the bucket has at most b elements.
-Assuming linear bucket insertion time, the worst case bound becomes
-$O(h+I_b) + \sum_{a=1}^b a = \frac{1}{2}b(b+1) = O(h+b^2)$.
-This only occurs of all $b$ elements have the same next character, which has a
-probability of $\frac{1}{\alpha^b}$.(see table \ref{tab:notation} for notation)
+are constant, and the bucket has at most b elements.
+Assuming linear bucket insertion time and only one burst, the worst case
+insertion bound becomes $O(h+b) + \sum_{n=1}^b n  = O(h+b^2)$. This only occurs
+of all $b$ elements have the same next character, which has a probability of
+$\frac{1}{\alpha^b}$ in a uniformly distributed dataset.
+(see table \ref{tab:notation} for notation)
 
 Deletions are equivalent to insertions in that removing a key may cause
 removal/addition of a bucket, and subsequently nodes. The method is equivalent
 to that of the basic trie, or the insertion algorithm in reverse.
 
 The aforementioned bursting is simply an iteration over the contents of the
-bucket, in order to insert them in a newly created child node, which is to
+bucket in order to insert them in a newly created child node, which is to
 take the buckets' place. This extends the trie by another level, and redistributes
-the keys into up to $\alpha$ new buckets in $O(b \cdot I_b)$ where $I_b$ denotes
+the keys into up to $\alpha$ new buckets in $O(b \cdot I_b)$, where $I_b$ denotes
 insertion time into a bucket.
 
 \begin{algorithm}[H]
@@ -138,7 +139,7 @@ et. al \cite{Heinz:2002} uses arrays, since the goal of the trie is to avoid
 element comparisons as much as possible. This allows the branching to be a
 constant-time operation, but at the cost of $\alpha$ potentially unused slots
 allocated ($\alpha$ being the node or alphabet size). A slot, being a pointer,
-takes up 8 bytes of space on a 64-bit machine.
+uses 8 bytes of space on a 64-bit machine.
 For the basic implementation, the nodes need only contain this array of size
 $((\alpha+1) \cdot 8)$ bytes, where the $+1$ is a pointer to the value type.
 
@@ -180,7 +181,6 @@ single-linked list.
         Insert    & $O(1)$ & $O(1)$   & E  \\ \hline
         Delete    & $O(n)$ & $O(n)$   & E \\ \hline
         Find      & $O(n)$ & $O(n)$   & C  \\ \hline
-        Iterate   & $O(n)$ & $O(n)$   & C  \\ \hline
     \end{tabular}
     \caption{Time bounds for the bucket operations using unsorted linked lists,
     with a basic locking scheme. $n$ denotes the number of elements in the
@@ -188,12 +188,12 @@ single-linked list.
     \label{tab:bounds:linked list}
 \end{table}
 
-\subsection{Unbalanced binary search tree}
+\subsection{Binary search tree}
 % Advantages
-The binary search trees allow for an (average case) logarithmic insertion,
-search and deletion structure, which is a known lower bound. So, the binary
-search trees are theoretically optimal in the average case, while having little
-space overhead.
+The unbalanced binary search trees allow for an (average case) logarithmic
+insertion, search and deletion structure, which is a known lower bound. So, the
+binary search trees are theoretically optimal in the average case, while having
+little space overhead.
 
 % Disadvantages
 However, the binary search trees were found to be inefficient due to
@@ -216,7 +216,6 @@ has no overhead from preallocation.
         Insert    & $O(\log n)$ & $O(n)$ & E \\ \hline
         Delete    & $O(\log n)$ & $O(n)$ & E \\ \hline
         Find      & $O(\log n)$ & $O(n)$ & C \\ \hline
-        Iterate   & $O(n)$      & $O(n)$ & C \\ \hline
     \end{tabular}
     \caption{Time bounds for the bucket operations using unbalanced binary
     search trees, $n$ denoting number of elements in the bucket. Locking terms
@@ -238,7 +237,6 @@ expected.
         Insert    & $O(\log n)$  & $O(\log n)$ & E \\ \hline
         Delete    & $O(\log n)$  & $O(\log n)$ & E \\ \hline
         Find      & $O(\log n)$  & $O(\log n)$ & C \\ \hline
-        Iterate   & $O(n)$       & $O(n)$      & C \\ \hline
     \end{tabular}
     \caption{Time bounds for the bucket operations using hashmaps, specifically
     the \STL Map implementation. $n$ denoting number of elements in the
@@ -265,11 +263,13 @@ If dynamic arrays are used, the array will have to be resized during some
 insertions. One approach could be to use an exact-fit array, but this would
 come at the cost of reallocating the array on every insertion. The space
 allocated can be maintained at a factor 4 of the actual load requiring only a
-logarithmic reallocation count. The overhead will be within a factor 4 of the
-elements' total size, since the array has no extra pointers to maintain.
+logarithmic reallocation count. The overhead will be within a
+factor 4 of the elements' total size, since the array has no extra pointers to
+maintain. This is done by simple doubling, leading to an amortized constant
+time for reallocations. 
 
-Another approach is to allocate the full bucket capacity, possibly creating a
-factor $b$ waste if the bucket load is low.
+Another approach is to allocate the full bucket capacity (a static array),
+possibly creating a factor $b$ waste if the bucket load is low.
 
 % Time bounds
 This means that either insertion or searching will be linear in the bucket
@@ -294,7 +294,7 @@ size, and therefore define the limit on the desired bucket size.
     \centering
     \begin{tabular}[here]{ l || c | c | c}
         Operation & Average case & Worst case & Requires locking  \\ \hline
-        Insert    & $O(1)$ & $O(n)$ & E \\ \hline
+        Insert    & $O(1) amortized$ & $O(1)$ amortized & E \\ \hline
         Delete    & $O(n)$ & $O(n)$ & E \\ \hline
         Find      & $O(n)$ & $O(n)$ & C  \\ \hline
     \end{tabular}
@@ -308,8 +308,8 @@ size, and therefore define the limit on the desired bucket size.
     \centering
     \begin{tabular}[here]{ l || c | c | c}
         Operation & Average case & Worst case & Requires locking  \\ \hline
-        Insert    & $O(n)$ & $O(n)$           & E \\ \hline
-        Delete    & $O(n)$ & $O(n)$           & E \\ \hline
+        Insert    & $O(n)$  & $O(n)$           & E \\ \hline
+        Delete    & $O(n)$  & $O(n)$           & E \\ \hline
         Find      & $O(\log n)$ & $O(\log n)$ & C  \\ \hline
     \end{tabular}
     \caption{Time bounds for the bucket operations using sorted dynamic arrays,
@@ -457,11 +457,9 @@ first 1 bit in a DWORD. If these bitvectors were used instead of {\keyword max}
 and {\keyword min}, the factor $b$ of updating these can be made constant.
 
 
-\clearpage
 \section{Parallelisation}
-\fxnote{Rewrite!!!}
 The primary objective is to avoid data corruption, while allowing several
-threads to access the structure at once. For this there are a few schemes with
+threads to access the structure at once. For this, there are a few schemes with
 their respective benefits and drawbacks. Some allow only very little or no
 parallelism, others allow conditional parallelism, say for instance having
 concurrent reads, exclusive writes, also known as CREW.
@@ -475,15 +473,12 @@ setting the structure in read-mode. This is the simplest form of locking.
 Since the \STL containers allow only concurrent reads, not writes, exclusive
 write-access is needed, limiting the insertions to be sequential.
 
-A test run with this type of locking can be seen in figure \ref{fig:globallock}.
-\begin{figure}[h!]
-    %\includegraphics{plots/i7/globallock}
-    \fxwarning{Fix globallock plot}
-    \caption{Thread scaling with global locking on the c2d machine (dual core),
-    and the newsgroups dataset. THE SHIT DEADLOCKS.}
-    \label{fig:globallock}
-\end{figure}
-Which shows no gains during insertions over the sequential.
+A test run with this type of locking is given in Figure \ref{fig:globallock}
+on Page \pageref{fig:globallock}.
+It shows no gains during insertions over the sequential (1-thread) run by
+adding more threads. However, this solution allows the structure to remain
+functional in a parallel environment, which is the first step in obtaining
+parallelism.
 
 
 If it is considered acceptable to have greater overhead from the locks, each
@@ -494,111 +489,133 @@ constant overhead, checking the locks before accessing.
 The algorithm will unfortunately be serial until the lookup in the bucket
 structure, which can, depending on the chosen bucket structure, be
 paralellised. This means that $n$ searches can be performed in $O(h+S_b)$ time,
-where $S_b$ is variable on the chosen method for bucket search, but that if
+where $S_b$ depends on the chosen method for bucket search, but that if
 simultanious insertions are performed, the insertion can possibly delay all
 other operations. 
 
 A node is locked during insertion, since changes can be made to the children
 array. The locking is then moved down through the trie, obtaining a lock on
-the child before releasing its own lock.
+the child before releasing its own lock. The current node or bucket is
+therefore always locked.
 
-For the iterators an added locking of the buckets is required. If the
-successor bucket is always locked before the predecessor, deadlock cannot occur
-from insertions into the non-circular linked-list of buckets. This is under
-the assumption that these pointers are only locked in this way.
+The update of the three buckets will need to happen in one
+step to avoid race conditions. If the successor bucket is always locked before
+the predecessor, deadlock cannot occur from insertions into the non-circular
+linked-list of buckets. This is under the assumption that these pointers are
+only locked in this way. The linked list pointers are only accessed when
+creating buckets or iterating the list, and as such, separate locking could be
+used for these to increase the level of potential parallelism. The general
+approach with iterators and insertions, however, is to invalidate all iterators
+on insertion. As such, the programmer is responsible for not using an iterator,
+during insertion as the behavior is undefined.
 
-The linked-list pointers are only accessed when creating buckets or iterating
-the list, and as such, separate locking could be used for these to increase
-the level of potential parallelism. The general approach with iterators and
-insertions, however, is to invalidate all iterators on insertion. As such,
-the programmer is responsible for not using an iterator, during insertion
-as the behavior is undefined.
+Removals are implemented in a way that very much resembles the insertions. The
+locking passes down, following the current node until reaching a node or bucket
+of size one (one child if in a node, one element if in a bucket). When this
+occurs no unlocking is done until the recursive remove call returns, allowing
+the node to remove the subtree if needed. The removals are therefore even less
+parallel than the insertions.
 
 \subsection{Avoiding locks}
 % Still interesting!
-The greatest bottleneck of the trie is the root node locking,
+The greatest bottleneck of the trie is the locking at the root, allowing only
+one writer at a time. The locking allows more writers for each level, but they
+must all first go through the root. To avoid exclusive locking of the nodes,
+atomic operations can be used in combination with contention management.
+As a principle in the following, concurrent mixed operations are undefined.
 
-Insertions consist of two phases, the bucket insertion, and the possible
-bursting. Bursting can be made dynamically parallel up to a factor of $O(b)$ by
-using one thread for each element in the queue, and relying on the recursive
-structure of the trie. This means bursting can theoretically be done in
-$\Omega(1)$ using $b$ processors, but the upper bound depends on the
-distribution of the nodes. That is, the only case where the elements will cause
-further bursting is if they are identical on the next part of the key, which
-has a $\frac{1}{\alpha^b}$ probability.
+The proposed solution is designed for building the dataset quickly in
+parallel, then performing other operations. With this in mind, bursting can be
+changed to insert an empty node immediately, allowing other threads to insert
+into this node without knowing that a bursting is in progress. As such, a
+bursting delays only the thread doing the bursting. An unlucky thread, however,
+might burst one bucket, only to trigger a burst of another, and so on. While
+highly unlikely, the time between the new node being available to other threads
+and inserting an element from the old bucket, the bucket may have been filled.
+This does pose a worst case bound of $O(\min(\alpha, b)^h)$, if every insertion
+into the child triggers new bursts. 
 
-What if the buckets grew as the trie got deeper - that would let the bursting be
-guaranteed constant, since $b$ elements cannot possibly cause a burst of a
-$b*a$ capacity container, with $a > 1$.
+If updating an element is dependent on the state before the update, the operation
+is called data dependent. If the value has changed before the operation can write
+its new value, the work is rolled back. The thread then tries again to read the
+value and perform the appropriate operation.
 
+Reading an index in the children array is a data dependency for the insert
+operation that needs to be performed. If the insertion finds an empty child,
+a bucket is created and the CAS (Compare And Swap) is successful if
+the child is still empty when the bucket reference is swapped back to the
+index. If CAS fails, the orphaned bucket is removed again, and the index is
+re-read. In the worst case, this presents only a constant amount of wasted work
+per level in the trie since either way a valid bucket is created for the
+insertion.
 
+If a bucket is found at the index the burst condition is checked. If a bursting
+is required a new node is created; the CAS is successful if the index
+still points to the bucket, making it point to the node. If this is done
+immediately before redistributing the keys into the node, potentially wasted
+work is again only constant. Doing the swap before redistributing the
+keys leaves those keys invisible to other threads, which is why any concurrent
+search/remove calls are undefined. This guarantees at most a constant
+number of operations when creating a new level in the trie. An insertion
+therefore takes $O(h+I_b)$, without having to wait for locks.
 
-We postulate, however, that the structure can be made parallel using a lock-free
-bursting scheme, assuming that the bucket container has a series of properties.
+The worst case for bursting is so so unlikely, that for all practical purposes
+an $O(b^2)$ burst time is expected. This becomes the dominant factor for most
+insertions, resulting in $O(h+b^2)$ insertion time for any number of concurrent
+insertions.
 
-As a principle, concurrent mixed operations are undefined.
-With this in mind, bursting can easily be changed to insert an empty node
-immediately, allowing other threads to insert into this node none the wiser,
-that a bursting is in progress. As such, a bursting delays only the
-thread doing the bursting.
-
-
-If full parallel utilization is to occur, a concurrent bursting method
-needs to be developed. This could be accomplished by adding a bucket pointer
-to the newly created node, and checking whether this is set when inserting into a node.
-If it is set, the threads join in on iterating over the bucket, inserting one
-element at a time, e.g. with the implemented CREW-vector atomic next().
-
-{\emph Note:} If any  of the \STL containers are used within the trie, they will
-have to be locked on writing, since the STL containers are not thread-safe by
-design.
-
-\subsubsection{Linked lists}
-A linked list can be maintained using atomic pointer operations, allowing
-sorted insertions without relying on locking.
-Linked lists are also easily expanded in the way described to be required during
-bursting, by appending to the tail of the list, and having the list keep a
-pointer to know which of them are in violation, and thereby may require a
-full linear lookup, instead of searching only untill reaching elements that are
-too large.
-
-\subsubsection{Arrays}
-It is not possible to avoid locks entirely if the arrays are to be dynamically
-expanded during insertions. That is, there is a possibility of a dynamic
-reallocation of the array on each insertion.
-
-If the values are sorted as well, almost every insertion will require moving
-other elements in the array, and since the array might become invalid in the
-mean time, locking is required.
-
-%\subsubsection{Hash tables}
-%If the buckets are of the HAT-trie type, a logical distribution of workers
-%can be made onto the respective sub buckets, which can then again be burst in
-%the same way as the aforementioned simple buckets, but will require extra checks
-%because of the extended structure. The last worker to move all its values will
-%therefore have to remove all the other buckets, and the hash table, if searches
-%are to continue using the structure untill the bursting has completed.
-
-\subsubsection{Parallel algorithms}
+\subsubsection{Assisting}
 On a theoretical level, parallelism is investigated in accordance with Amdahls
 law, analyzing each part of the procedure for possible parallelisation.
 
 Following the definition of parallel algorithms, the burst trie algorithms of
-page \pageref{alg:bt_insert} are equivalent to the sequential versions, but
+Page \pageref{alg:bt_insert} are equivalent to the sequential versions, but
 with parallelised loops where possible. Each new iteration of the lookup
 is dependent on the previous, and can therefore not be parallelised. This
 establishes the $O(h)$ factor in the operations despite parallelism.
 
-The bursting, being a simple iteration of the elements can be parallelised
-in such a way as to obtain a constant-time burst, using $b$ processors.
-This is a recursive case of node insertion, and equivalent to parallel
-insertions into the root. The 
+We postulate that the burst bounds can be reduced by adding assisting logic to
+what is invariably the most expensive operation of the trie. Iterating the
+bucket during bursting can be done wait-free, assuming that the bucket
+container has a wait-free persistent iterator.
 
-Theoretically optimal: Lockfree nodes with joined bursting.
-insertion on $n$ keys using $n$ processors: $O(l+B)$, the length of the longest word, where $B$ is
-needed to obtain sorted lists.
+Bursting can be made dynamically parallel up to a factor of $O(b)$ by
+using one thread for each element in the bucket, and relying on the recursive
+structure of the trie. This means bursting can theoretically be done in
+$O(1)$ using $b$ processors, but the upper bound depends on the
+distribution of the elements.
 
-Finding a key will always take $O(h+B)$, where $B$ depends on the bucket, these operations
-are concurrent by design, since no changes are made.
+The assist logic can be implemented by adding a bucket pointer to the
+newly created node (a reference to the bursting bucket), and checking whether
+this is set when inserting into a node. If it is set, the threads join
+in on iterating over the bucket, taking part in the remaining workload.
+This means that if $b$ insertions are made into the node
+below a bursting bucket, $b$ processors will join. Checking this pointer
+done on every level, taking $O(h)$ time, and not adding to the complexity.
+This makes it possible to encounter
+$O(b)$ work at every level, resulting in a parallelised wait-free
+bound of $O(hb)$ for $n$ insertions on $n$ processors.
 
-Removals are a bitch...
+\subsubsection{The bucket factor}
+% BUT BUCKETS SUCK!
+If the buckets are still using locks, the algorithm will have a maximum
+parallelism factor of the bucket count. The payoff of the assist implementation
+is then at most a factor $\alpha$, the bucket count under the new node.
+
+While making these structures lock-free is not the focus of this project, some
+bucket types are simpler to implement than others:
+\begin{itemize}
+\item A linked list can be maintained using atomic pointer operations, allowing
+sorted and unsorted insertions without relying on locking. The insertion creates
+a new node, loads the neighbor pointers, sets the pointers and checks if they have
+changed requiring a new attempt.
+\item A binary tree is pointer based like the linked list, and can be
+implemented in the same way.
+%
+\item It is not possible to avoid locks entirely if the arrays are to be
+dynamically expanded during insertions. That is, there is a possibility of a
+dynamic reallocation of the array on each insertion. If the values are sorted
+as well, almost every insertion will require moving other elements in the
+array, and since the array is invalid in the meantime, locking is
+required. The only possible arrays are therefore static.
+\end{itemize}

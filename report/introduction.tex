@@ -32,7 +32,7 @@ there are few of them in a particular subtree. Each bucket is then assigned a
 capacity. When inserting elements into a burst trie, the structure finds the
 corresponding bucket and puts the element in it. If the bucket exceeds its
 capacity it "bursts", creating a new parenting node and redistributing the
-elements into buckets under it, based on the next part of the prefix. As such,
+elements into buckets under it, based on the next part of the key. As such,
 each bucket is uniquely determined by its prefix (or path in the trie). The
 elements in each bucket therefore all have the same prefix, making it possible
 to discard this part of the key to save space. This is what makes it possible
@@ -41,13 +41,13 @@ for the trie to be more space efficient than an equivalent hashmap, or
 
 % Why are burst tries nice?
 Burst tries have been shown to be faster and more space efficient than
-compari\-son-based data structures such as B-trees and red-black trees when used
+comparison-based data structures such as B-trees and red-black trees when used
 on integer data\cite{Nash:2008}. For strings the burst trie is more efficient
 than trees\cite{Heinz:2002} while unlike hash-tables allowing efficient iteration
 of sorted keys with minor modifications. These modifications are one of the
 focus areas of this project.
 
-The original burst trie uses linked lists for the containers, but this has been
+The original burst trie\cite{Heinz:2002} uses linked lists for the containers, but this has been
 shown to be inefficient in a modern cache hierachy. There has been done research
 in different ways to improve the structure, by replacing the bucket structure.
 Nash \& Gregg have done work on optimizing the trie itself, using so-called

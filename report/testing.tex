@@ -10,7 +10,7 @@ reading them into memory. Not only must the accesses be thread-safe, but
 a shared thread-safe iterator is needed.
 
 I have therefore implemented a simple CREW (concurrent read exclusive write)
-vector for this purpose. The base performance of this is a memory consumption
+vector for this purpose. The base footprint of this is a memory consumption
 of 8 times the word count bytes from pointers, plus the size of the dataset
 itself. It works by doing an atomic {\keyword AO\_fetch\_and\_add}, and
 exploits the indexing of the array.
@@ -18,7 +18,8 @@ exploits the indexing of the array.
 The structure is compared with the \STL map implementation for a baseline result.
 The tests are designed to test the structure under both uniform distribution and
 under real-world dictionary use. In order to show that it is possible to obtain
-better results than sequential insertion, the
+better results than sequential insertion, the number of threads is varied
+across the tests and trie variants.
 
 More complex trie implementations are not tested, as the source code has not
 been made available in any of the referenced material.
@@ -76,14 +77,13 @@ The Core 2 Duo machine is a Dell Laptop, chosen for its dual-core CPU.
 The Xeon machine is a server workstation at DIKU, with two Xeon E5420 CPUs,
 but is shared with many other students, which means that the workload
 under testing was not under our control. The i7 machine was used for its
-quad-core CPU, and with hyperthreading showing up as 8 cores, where 4 of them
-are virtual, provides an interesting comparison with the Xeon machine, which
-has 8 physical cores. The i7 machine was used for primary testing.
+quad-core CPU, and with hyperthreading showing up as an octo-core, where four
+of them are virtual, provides an interesting comparison with the Xeon machine,
+which has 8 physical cores. The i7 machine was used for primary testing.
 
-The tests themselves are run by running 10 iterations of the dataset, while randomizing
-the order of the reference container, and thereby the search and insertion order
-between every iteration, as well as between insertion and searching.
-
+The tests themselves are run by running 10 iterations of the dataset. The order
+of the elements is randomized before inserting, and again before searching, to
+avoid searching in the same order they were inserted.
 
 \section{Sequential tests}
 For assessing the relative performances under a sequential environment, first a
@@ -117,12 +117,6 @@ linear scaling, this is slightly lower than the observed 4450MB. Massif and
 valgrind was unable to run on the full 30M set, because of added memory
 overhead.
 
-The expected constant-time insertion into unsorted arrays is evident, showing
-an insertion time of $24$ to $38$ seconds.
-The {\keyword map} bucket scales second best with larger bucket sizes, but
-shows a large jump in memory use when compared to the other buckets, with smaller
-bucket sizes. This is mainly attributed to large space overhead, from the
-lookup tables, which becomes neglectible as the bucket count decreases.
 
 \begin{table}[h]
     \centering
@@ -142,14 +136,42 @@ lookup tables, which becomes neglectible as the bucket count decreases.
     \label{tab:bncounts_30M}
 \end{table}
 
-With the counts being the same for several of the sizes, the cause for
-increased insertion times must be an increased cost of bursting of the cost of
-bursting. The binary trees also take an impact on increased bucket sizes, which
+With the counts being the same for several of the sizes, any difference in performance
+during insertion must be caused by bursting. When the containers are allowed to grow,
+the upper bound on insertion and bursting becomes more important.
+
+The binary trees also take an impact on increased bucket sizes, which
 is a increased emphasis on insertion order may create deep buckets, which also
-shows slightly in the insertion phase.
+shows slightly in the insertion phase (see Figure \ref{fig:seq_30m} on
+Page \pageref{fig:seq_30m}).
+
+The expected constant-time insertion into unsorted arrays is evident, showing
+an insertion time of $24$ to $38$ seconds. This container then pays on search
+by linear search times. The reverse cost is seen for sorted arrays as expected.
+
+The {\keyword map} bucket scales second best on insertion with larger bucket
+sizes, but shows a large jump in memory use when compared to the other buckets,
+with smaller bucket sizes. This is mainly attributed to the {\keyword map}
+using dynamic resizing, where the chosen size of 64 elements is just above a
+reallocation limit.
+
+\begin{landscape}
+    \begin{figure*}[H]
+        \subfloat[Insert]{
+            \includegraphics[width=1.0\textwidth]{plots/i7_30m_insert}
+        }
+        \subfloat[Search]{
+            \includegraphics[width=1.0\textwidth]{plots/i7_30m_search}
+        }
+        \caption{Sequential test: Scaling of insertion and self-search times
+        using the 30M Random dataset, with varying bucket sizes from 32 to
+        4096. The {\keyword map} time is shown for reference as a dotted line.}
+        \label{fig:seq_30m}
+    \end{figure*}
+\end{landscape}
 
 
-\subsection{Shakespeare dataset}
+\subsection{Dictionary datasets}
 The shakespeare dataset is chosen for its real-world character distribution, and will
 therefore present a good test-case for dictionary use of the structure.
 
@@ -172,7 +194,7 @@ therefore present a good test-case for dictionary use of the structure.
     \label{tab:bncounts_shakespeare}
 \end{table}
 
-\subsection{Newsgroups dataset}
+
 By using a dataset that is perhaps more real world applicable, the structure is
 evaluated as a means of storing data for web scraping and analysis. The dataset has a 
 larger alphabet than the others, resulting in the requirement to increase
@@ -197,44 +219,40 @@ node size to 256 from 128.
     per bucket on termination.}
     \label{tab:bncounts_ngrp}
 \end{table}
-\begin{landscape}
-    \begin{figure*}[H]
-        \subfloat[Insert]{
-            \includegraphics[width=1.0\textwidth]{plots/i7_30m_insert}
-        }
-        \subfloat[Search]{
-            \includegraphics[width=1.0\textwidth]{plots/i7_30m_search}
-        }
-        \caption{Scaling of insertion and self-search times using the 30M Random
-        dataset, with varying bucket sizes from 32 to 4096. The {\keyword map} time
-        is shown for reference as a dotted line.}
-        \label{fig:seq_30m}
-    \end{figure*}
-\end{landscape}
 
+With the dictionary sets having larger skew, the structure is more sensitive to
+the bucket sizes (table \ref{tab:bncounts_shakespeare} and
+\ref{tab:bncounts_ngrp}). As such, a more continuous scaling is expected for
+these sets.
 
-
+\clearpage
 \section{Parallel scaling}
 In testing the parallel scaling of the different burst trie variants,
-a  
+testing has been done on all three machines in order to evaluate scaling
+to the number of CPUs.
 
-Locking improvement: per-node lock.
+The first improvement made was to the locking method of the nodes. Here in
+Figure \ref{fig:globallock}, the difference is shown.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{plots/ts_locking}
+    \fxwarning{Fix globallock plot}
+    \caption{Thread scaling with global and local locking on the i7 machine (quad core),
+    and the newsgroups dataset.}
+    \label{fig:globallock}
+\end{figure}
+It is clear that the global lock is not a viable solution, these tests
+show a clear bottleneck already beginning to show at 2 cores for insertions.
+As such, insertions using more than a single thread are slower, since no
+parallelism is gained, while synchronization of caches and locking is added.
+The local locking on the other hand benefits from adding threads up to the
+number of available CPUs.
 
-Amdahls law.
 
 
-\subsection{Datasets}
-
-
-These tests show a clear bottleneck already beginning to show at 2 cores for
-insertions, while the concurrent locking on insertions allows full parallelism
-to the order of the number of cores available. This is caused by the shallow
-trie, which is an issue due to node-level parallelism.
-
-Due to sharing of the locks, that needs to be synchronized between caches, on
-an expensive interconnect, the scaling is negative. That is, the overhead
-created by synchronization of the node locks is greater than the gain in
-parallelism.
+While the sequential results show a clear tendency towards increased runtime
+with larger containers, the sizes also influence the structure of the trie.
+This means that different bucket sizes will scale differently.
 
 \begin{table}[h]
     \centering
@@ -250,23 +268,67 @@ parallelism.
         Binary tree            & 32   & 0.979  & 5.680\\
     \hline
     \end{tabular}
-    \caption{Speedup factor for each bucket in the 30M dataset for 32 threads on the i7
-quad-core machine (virtual octo-core).}
+    \caption{i7 30M: Best observed speedup factor for each bucket in the 30M
+    dataset for up to 32 threads on the i7 quad-core machine (virtual
+    octo-core). Results shown as best insertion time and best search time. The
+    same size performed best on both if there is only one line.}
     \label{tab:speedups_30m_i7}
 \end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}[here]{ l l l l }
+    \hline
+        Bucket type            & Size & Insert & Search\\\hline
+        %
+        STL::Map               & 128  & 1.054  & 2.120\\
+        STL::Map               & 4096 & 0.702  & 2.564\\
+        Sorted dynamic array   & 32   & 1.584  & 2.533\\
+        Sorted dynamic array   & 4096 & 0.825  & 2.970\\
+        Unsorted dynamic array & 64   & 1.065  & 2.177\\
+        Unsorted dynamic array & 4096 & 0.603  & 3.941\\
+        Binary tree            & 1024 & 1.714  & 2.218\\
+        Binary tree            & 4096 & 1.293  & 2.530\\
+    \hline
+    \end{tabular}
+    \caption{i7 Shakespeare: Best observed speedup factor for each bucket in
+    the shakespeare dataset for up to 32 threads on the i7 quad-core machine
+    (virtual octo-core). Results shown with best insertion time and best search
+    time. The same size performed best on both if there is only one line.}
+    \label{tab:speedups_shsp_i7}
+\end{table}
 
-This shows that it is possible to obtain speedup factors of up to 6 with a
-fully concurrent locking mechanism. With this as the reference, the gains
-of a factor $3.3$ on insertions and a factor $5.2$ on searches, the sorted
-dynamic arrays seem to scale the best.
+The results from the 30M dataset (table \ref{tab:speedups_30m_i7} and page
+\pageref{fig:ts_i7_30m}) show that it
+is possible to obtain speedup factors of up to $6.1$ with a fully concurrent
+locking mechanism on an 8-core system. With this as the reference, the gains of
+a factor $3.3$ on insertions and a factor $5.2$ on searches for the sorted dynamic
+arrays seem respectable. The sorted dynamic array of 256 is the only structure
+(and size) that scales well on both insertion and search. The four virtual
+cores (Hyper-threading) have a greater impact on performance than expected,
+with most tests scaling up to 8 threads. The scaling of the i7 is high enough,
+that the results from the Xeon setup have been discarded due to inconsistencies
+from uncontrolled load factors. The scaling to the two resp. four cores can be
+seen in on page \pageref{fig:ts_shsp}.
 
 The greatest gains appearing from unsorted array concurrency is evidence that
-the locking favors heavy work the leaves. This fits perfectly with the expected
-node-level parallelism, which also explains why the greatest gains in insertion
-is seen with sorted arrays, being the only bucket structure with linear insertion
-times, and thereby up to $O(n^2)$ bursting times.
+the locking favors heavy work in the leaves. This fits perfectly with the
+expected node-level parallelism, which also explains why the greatest gains in
+insertion is seen with sorted arrays, being the only bucket structure with
+linear insertion times, and thereby up to $O(n^2)$ bursting times.
 
-It is somewhat surprising that the searches take such a big hit from the locking,
-evident in the larger unsorted array cases. The empirical concurrency of the
-read-locks is hereby reduced. The difference is even greater on the Xeon machine,
-where the maximum speedup factor observed for searching was 4.1.
+It is somewhat surprising that the searches take such a big hit from the
+locking, evident in the larger unsorted array cases, and when comparing with
+the shakespeare set (table \ref{tab:speedups_shsp_i7}). The shakespeare tests
+result in a much smaller trie, and the continuous scaling of the trie allows us
+to conclude that the overhead from locks is dominant for smaller containers.
+This is seen by all containers favoring larger buckets, meaning a shallower
+trie and less locks. The results for the shakespeare and newsgroup sets show
+the same conclusion, the scaling can be seen on page \pageref{fig:ts_i7_nsgrp}.
+
+The empirical concurrency of the read-locks is hereby reduced. The difference
+is even greater on the Xeon machine, where the maximum speedup factor observed
+for searching was $4.1$ for the 30M set. The Xeon results are very inconsistent
+    due to shared resources with other students, and have been only used for
+    reference.
+
+

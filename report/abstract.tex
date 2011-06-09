@@ -1,24 +1,29 @@
 \begin{abstract}
-With the scaling of CPUs more focusing on increases in the number of cores, highly
-parallelizable data structures are of increasing importance.
+With the scaling of CPUs focusing more on increases in the number of cores,
+highly parallelisable data structures are of increasing importance.
 
 This project seeks to explore the implementation tradeoffs in parallelising the
-burst trie datastructure, which has been shown to be on par with hashmaps in
-both speed and space consumption. The burst trie provides fast sorted access to
+burst trie data structure, which has been shown to be on par with hash maps in
+both speed and space consumption. The burst trie provides fast access to
 strings and integers, however different bucket types have different advantages
 and disadvantages.
 
 By comparing different tradeoffs needed to implement partial functionalities,
-specialized data structures are developed. Depending on the level of parallelism,
-distribution of insertions/searches and removals, and the distribution of the
-inserted data, different variations excel. This means evaluating the
-modifications needed to make the trie work as a threadsafe set-, multiset- or
-map container.
+specialized data structures are developed. Depending on the level of
+parallelism, distribution of insertions/searches/removals, and the
+distribution of the inserted data, different variations excel. This means
+evaluating the modifications needed to make the trie work as a threadsafe set-,
+multiset- or map container.
 
-% REWRITE
-In this project a simple locked burst trie is implemented, allowing 
-speed-ups of up to a factor ? for insertions, and a factor 6 for 
-searches.
+The performance of the trie in sequential testing is found to degrade with
+increased bucket sizes, while the opposite tendency is found for parallel
+scaling for larger datasets. As such no silver bullet is found for bucket
+sizes.
 
+Using a relatively simple locking mechanism, speedups of up to a factor $6$ are
+observed for searches and $3.5$ for insertions, when utilizing 8 CPUs.
+
+A lock-free implementation technique is proposed to avoid bottlenecking at the
+root, but not successfully implemented.
 
 \end{abstract}
