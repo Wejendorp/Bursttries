@@ -9,7 +9,7 @@ allow the threads to concurrently extract words from the dataset after first
 reading them into memory. Not only must the accesses be thread-safe, but
 a shared thread-safe iterator is needed.
 
-I have therefore implemented a simple CREW (concurrent read exclusive write)
+We have therefore implemented a simple CREW (concurrent read exclusive write)
 vector for this purpose. The base footprint of this is a memory consumption
 of 8 times the word count bytes from pointers, plus the size of the dataset
 itself. It works by doing an atomic {\keyword AO\_fetch\_and\_add}, and
@@ -85,38 +85,8 @@ The tests themselves are run by running 10 iterations of the dataset. The order
 of the elements is randomized before inserting, and again before searching, to
 avoid searching in the same order they were inserted.
 
-\section{Sequential tests}
-For assessing the relative performances under a sequential environment, first a
-baseline measurement of the {\keyword STL::Map} structure is made, on each of
-the test machines.
 
-\subsection{Uniformly distributed data}
-Basic MAP result using the 30M dataset.
-
-\begin{table}[h!]
-    \centering
-    \begin{tabular}[here]{ l l l }
-        \hline
-        Machine   & Insertion time & Self-search time  \\\hline
-        C2D       & NA             & NA                \\\hline
-        i7        & 112.74         & 110.45            \\\hline
-        Xeon      & 231.33         & 231.56            \\\hline 
-    \end{tabular}
-    \caption{Base results for the STL::Map container, using the 30M random strings set.}
-    \label{tab:maptimes}
-\end{table}
-
-Here, the primary difference of the machines lies in the amount of memory
-available. Since the structure uses more than 4500 MB with the chosen dataset,
-the Core2Duo setup uses paging to obtain the needed memory, and as such incurs
-a huge performance hit when compared to the other two.
-
-To verify this, Valgrind was run with the Massif heap profiler
-[\pageref{fig:Massif_map_30m}], showing an allocation size of 434MB. Assuming
-linear scaling, this is slightly lower than the observed 4450MB. Massif and
-valgrind was unable to run on the full 30M set, because of added memory
-overhead.
-
+\subsection{Datasets}
 
 \begin{table}[h]
     \centering
@@ -140,38 +110,6 @@ With the counts being the same for several of the sizes, any difference in perfo
 during insertion must be caused by bursting. When the containers are allowed to grow,
 the upper bound on insertion and bursting becomes more important.
 
-The binary trees also take an impact on increased bucket sizes, which
-is a increased emphasis on insertion order may create deep buckets, which also
-shows slightly in the insertion phase (see Figure \ref{fig:seq_30m} on
-Page \pageref{fig:seq_30m}).
-
-The expected constant-time insertion into unsorted arrays is evident, showing
-an insertion time of $24$ to $38$ seconds. This container then pays on search
-by linear search times. The reverse cost is seen for sorted arrays as expected.
-
-The {\keyword map} bucket scales second best on insertion with larger bucket
-sizes, but shows a large jump in memory use when compared to the other buckets,
-with smaller bucket sizes. This is mainly attributed to the {\keyword map}
-using dynamic resizing, where the chosen size of 64 elements is just above a
-reallocation limit.
-
-\begin{landscape}
-    \begin{figure*}[H]
-        \subfloat[Insert]{
-            \includegraphics[width=1.0\textwidth]{plots/i7_30m_insert}
-        }
-        \subfloat[Search]{
-            \includegraphics[width=1.0\textwidth]{plots/i7_30m_search}
-        }
-        \caption{Sequential test: Scaling of insertion and self-search times
-        using the 30M Random dataset, with varying bucket sizes from 32 to
-        4096. The {\keyword map} time is shown for reference as a dotted line.}
-        \label{fig:seq_30m}
-    \end{figure*}
-\end{landscape}
-
-
-\subsection{Dictionary datasets}
 The shakespeare dataset is chosen for its real-world character distribution, and will
 therefore present a good test-case for dictionary use of the structure.
 
@@ -224,6 +162,68 @@ With the dictionary sets having larger skew, the structure is more sensitive to
 the bucket sizes (table \ref{tab:bncounts_shakespeare} and
 \ref{tab:bncounts_ngrp}). As such, a more continuous scaling is expected for
 these sets.
+
+\section{Sequential results}
+For assessing the relative performances under a sequential environment, first a
+baseline measurement of the {\keyword STL::Map} structure is made, on each of
+the test machines.
+
+Basic MAP result using the 30M dataset.
+\begin{table}[h!]
+    \centering
+    \begin{tabular}[here]{ l l l }
+        \hline
+        Machine   & Insertion time & Self-search time  \\\hline
+        C2D       & NA             & NA                \\\hline
+        i7        & 112.74         & 110.45            \\\hline
+        Xeon      & 231.33         & 231.56            \\\hline 
+    \end{tabular}
+    \caption{Base results for the STL::Map container, using the 30M random strings set.}
+    \label{tab:maptimes}
+\end{table}
+
+Here, the primary difference of the machines lies in the amount of memory
+available. Since the structure uses more than 4500 MB with the chosen dataset,
+the Core2Duo setup uses paging to obtain the needed memory, and as such incurs
+a huge performance hit when compared to the other two.
+
+To verify this, Valgrind was run with the Massif heap profiler
+[\pageref{fig:Massif_map_30m}], showing an allocation size of 434MB. Assuming
+linear scaling, this is slightly lower than the observed 4450MB. Massif and
+valgrind was unable to run on the full 30M set, because of added memory
+overhead.
+
+The binary trees also take an impact on increased bucket sizes, which
+is a increased emphasis on insertion order may create deep buckets, which also
+shows slightly in the insertion phase (see Figure \ref{fig:seq_30m} on
+Page \pageref{fig:seq_30m}).
+
+The expected constant-time insertion into unsorted arrays is evident, showing
+an insertion time of $24$ to $38$ seconds. This container then pays on search
+by linear search times. The reverse cost is seen for sorted arrays as expected.
+
+The {\keyword map} bucket scales second best on insertion with larger bucket
+sizes, but shows a large jump in memory use when compared to the other buckets,
+with smaller bucket sizes. This is mainly attributed to the {\keyword map}
+using dynamic resizing, where the chosen size of 64 elements is just above a
+reallocation limit.
+
+\begin{landscape}
+    \begin{figure*}[H]
+        \subfloat[Insert]{
+            \includegraphics[width=1.0\textwidth]{plots/i7_30m_insert}
+        }
+        \subfloat[Search]{
+            \includegraphics[width=1.0\textwidth]{plots/i7_30m_search}
+        }
+        \caption{Sequential test: Scaling of insertion and self-search times
+        using the 30M Random dataset, with varying bucket sizes from 32 to
+        4096. The {\keyword map} time is shown for reference as a dotted line.}
+        \label{fig:seq_30m}
+    \end{figure*}
+\end{landscape}
+
+
 
 \clearpage
 \section{Parallel scaling}
