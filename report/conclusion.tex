@@ -1,54 +1,40 @@
 \chapter{Conclusion}
 
-% Implementing the trie
-In extending the structure to support even simple removals, an extra counter
-was added to the nodes and the buckets. The implemented removal method
-is simplistic to avoid maintaining extra size counts. This has the drawback of
-allowing long chains of nodes to remain, when they could be reduced to a bucket.
-
-The operations required by an STL {\keyword (Multi-)map} have been implemented:
-
-For efficient iterators, the buckets are made into a linked list, adding two
-pointers per bucket. These are maintained in $O(h+\alpha)$ time in the chosen
-implementation.
-
-In order to minimize the linear scanning, {\keyword min} and {\keyword max}
-indices are added to the nodes. These are maintained in $O(\alpha)$, by
-scanning the children array. The more efficient solution of bitvectors has not
-been implemented, which would allow this to be reduced to constant work.
-
-The linked list of buckets is also used for finding the predecessor and
-successor to a given element, scanning the bucket. If no bucket is found
-linear scanning of the children array is performed, until one is found.
-As such these methods come for free when the iterators have been implemented.
-
-The differences between a set and a map is only one of inserting pointers together
-with the keys. As such no changes are required. The only difference between a
-map and a multi-map is made in the buckets. If a multi-map is desired, the
-buckets need to insert a new key regardless of preexisting keys. If a map/set is
-wanted, the buckets need to determine if the key already exists.
-The implemented structure does not include this check, and is therefore
-a multi-map.
-\\
-
 % Parallelising the trie
 Using a relatively simple locking mechanism, speedups of up to a factor $6$
 were observed for searches and $3.5$ for insertions, when utilizing 8
-processors.
+processors. These were observed for two different bucket types, sorted
+and unsorted arrays of size 256.
+
+The best times are obtained with large unsorted arrays if the structure is
+used in a search-intensive environment. If the operations are equally
+distributed, the best results were obtained with binary tree buckets of size 32.
+Here the structure is built in 18 seconds and searched in 10, using 4 threads,
+compared to the best sequential times of 43 and 32 seconds for an unsorted
+array bucket with a size of 32.
+
 
 In theory the read-locks allow full concurrency, and as such linear scaling to the
 processor count was expected. The results show that the one lock per node
 approach is not a globally suited solution, since the scaling is very dependent
 on the height of the trie.
 
-The exclusive locking comes at the cost of negative speedup for over-saturated
-processors due to synchronization, and when combined with very efficient bucket
-operations becomes the dominant factor for larger tries.
+For insertions the exclusive locking comes at the cost of negative speedup for
+over-saturated processors due to synchronization, and when combined with very
+efficient bucket operations becomes the dominant factor for larger tries.
 
 The waiting itself is the problem for smaller tries, since the locking is
 incremental from the root down, creating what is essentially a sequential
-locking queue at the root. In order to obtain increased parallelism, smaller
-bucket sizes will increase the size of the trie.
+locking queue at the root. In order to obtain increased parallelism smaller
+bucket sizes are used to increase the size of the trie. At the same time,
+searches scale the best with large containers, since the locking overhead
+is minimized by spending more time in the buckets.
+This leads to the conclusion that a lock-free implementation is the only
+way to make the trie scale better on insertions, without compromising
+the search efficiency.
+
+The lock-free solution was attempted implemented, but without success.
+Therefore, no empirical results are available for the lock-free solution.
 
 \section{Future work}
 A caveat of the chosen implementation is the lack of a reduction criteria
@@ -59,8 +45,45 @@ reasoning about a lock-free removal solution easier.
 The implementation of a lock-free trie was unsuccessful, and remains a
 theoretical possibility. The theoretical ground work has been laid for
 implementing a wait-free trie, both with and without assisted bursting.
+A successful implementation of this is a promising next step in the
+parallelisation of the burst trie.
 
 If such a structure is implemented, the perceived locking granularity of each
 node will be increased by a factor of $\alpha$, as a result of backing-off on
 concurrent changes of the same memory location. No locking actually occurs,
 and the resulting structure can scale to any number of processors.
+The proposed structure only covers the targetted operations of inserting
+and searching. The added STL functionalities of iteration and removal
+have not been covered in the proposed lock-free trie. This could be the
+focus for future work on the trie.
+
+%% Implementing the trie
+%In extending the structure to support even simple removals, an extra counter
+%was added to the nodes and the buckets. The implemented removal method
+%is simplistic to avoid maintaining extra size counts. This has the drawback of
+%allowing long chains of nodes to remain, when they could be reduced to a bucket.
+%
+%The operations required by an STL {\keyword (Multi-)map} have been implemented:
+%
+%For efficient iterators, the buckets are made into a linked list, adding two
+%pointers per bucket. These are maintained in $O(h+\alpha)$ time in the chosen
+%implementation.
+%
+%In order to minimize the linear scanning, {\keyword min} and {\keyword max}
+%indices are added to the nodes. These are maintained in $O(\alpha)$, by
+%scanning the children array. The more efficient solution of bitvectors has not
+%been implemented, which would allow this to be reduced to constant work.
+%
+%The linked list of buckets is also used for finding the predecessor and
+%successor to a given element, scanning the bucket. If no bucket is found
+%linear scanning of the children array is performed, until one is found.
+%As such these methods come for free when the iterators have been implemented.
+%
+%The differences between a set and a map is only one of inserting pointers together
+%with the keys. As such no changes are required. The only difference between a
+%map and a multi-map is made in the buckets. If a multi-map is desired, the
+%buckets need to insert a new key regardless of preexisting keys. If a map/set is
+%wanted, the buckets need to determine if the key already exists.
+%The implemented structure does not include this check, and is therefore
+%a multi-map.
+%\\

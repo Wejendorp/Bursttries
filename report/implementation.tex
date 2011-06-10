@@ -391,13 +391,12 @@ list approach.
     \centering
     \begin{tabular}[here]{ l | c | c | c | c}
         Method      & begin()  & Next()           & Memory cost (B) & Memory (use)(B) \\ \hline
-        Linked list  & $O(1)$ & $O(1 + b) $        & $8\cdot2B$      & $O(1)$ \\
-        Tree-walk & $O(1)$ & $O(h \cdot c + b)$   & $0$             & $O(h)$ \\ \hline
+        Linked list  & $O(1)$ & $O(1 + b) $        & $8\cdot2\cdot C$      & $O(1)$ \\
+        Tree-walk & $O(1)$ & $O(h \cdot \alpha + b)$   & $0$             & $O(h)$ \\ \hline
     \end{tabular}
     \caption{The possible options for iterator implementation, their added
     memory cost to the structure, and their memory consumption during use. Here
-    $c$ denotes the size of the children array, $b$ denotes the bucket size and
-    $h$ the height of the trie.}
+    C is used to denote the bucket count.}
 
     \label{tab:stats:iterator}
 \end{table}
@@ -533,7 +532,7 @@ might burst one bucket, only to trigger a burst of another, and so on. While
 highly unlikely, the time between the new node being available to other threads
 and inserting an element from the old bucket, the bucket may have been filled.
 This does pose a worst case bound of $O(\min(\alpha, b)^h)$, if every insertion
-into the child triggers new bursts. 
+into the child triggers new bursts.
 
 If updating an element is dependent on the state before the update, the operation
 is called data dependent. If the value has changed before the operation can write

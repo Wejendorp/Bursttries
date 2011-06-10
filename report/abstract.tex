@@ -1,4 +1,6 @@
-\begin{abstract}
+\noindent
+{\bf Abstract}
+\\\\
 With the scaling of CPUs focusing more on increases in the number of cores,
 highly parallelisable data structures are of increasing importance.
 
@@ -24,6 +26,32 @@ Using a relatively simple locking mechanism, speedups of up to a factor $6$ are
 observed for searches and $3.5$ for insertions, when utilizing 8 CPUs.
 
 A lock-free implementation technique is proposed to avoid bottlenecking at the
-root, but not successfully implemented.
+root of the trie, but not successfully implemented.
+\\\\
+{\bf Resume}
+\\\\
+Da skalering af processorer i stigende grad fokuserer på forøgelse af antallet af
+kerner, er højt paralleliserbare data strukturer af stigende vigtighed.
 
-\end{abstract}
+Dette projekt søger at undersøge hvilke kompromiser der indgår i implementation
+af burst trie datastrukturen, der er vist at være på højde med hash maps
+både med ydelse og hukommelses forbrug. Burst trien giver hurtig tilgang til
+strenge og heltal, men forskellige bucket typer har forskellige fordele og ulemper.
+
+Ved at sammenligne de forskellige kompromiser nødvendige for at implementere dele
+af funktionaliteten udvikles specialiserede datastrukturer. Afhængig af niveauet
+af parallelisme, fordeling af indsættelser/søgninger/sletninger, og fordeling
+af det indsatte data, vil forskellige variationer være bedst. Dette betyder at
+vi må evaluere modifikationerne der er nødvendige for at gøre strukturen til
+en trådsikker sæt-, multisæt- og map struktur.
+
+Ydelsen for trien ved sekventiel test ses at gå ned med forøgede bucket størrelse
+mens den omvendte tendens ses for parallel skalering for større datasæt. Derfor
+findes der ingen gylden bucket stoerrelse.
+
+Med brug af relativt simple locking metoder, observeres speedups på op til en
+faktor 6 for søgninger og 3.5 for indsættelser med brug af 8 processorer.
+
+En lock-free implementation foreslås for at undgå flaskehalse ved
+roden af trien, men har ikke kunnet implementeres.
+

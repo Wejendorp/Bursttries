@@ -87,6 +87,9 @@ avoid searching in the same order they were inserted.
 
 
 \subsection{Datasets}
+The different datasets result in different node and bucket counts for each
+bucket size. These counts give an indication of the structure of the trie,
+and are needed to understand the results, when changing the sizes.
 
 \begin{table}[h]
     \centering
@@ -187,11 +190,10 @@ available. Since the structure uses more than 4500 MB with the chosen dataset,
 the Core2Duo setup uses paging to obtain the needed memory, and as such incurs
 a huge performance hit when compared to the other two.
 
-To verify this, Valgrind was run with the Massif heap profiler
-[\pageref{fig:Massif_map_30m}], showing an allocation size of 434MB. Assuming
-linear scaling, this is slightly lower than the observed 4450MB. Massif and
-valgrind was unable to run on the full 30M set, because of added memory
-overhead.
+To verify this, Valgrind was run with the Massif heap profiler, showing an
+allocation size of 434MB. Assuming linear scaling, this is slightly lower than
+the observed 4450MB. Massif and valgrind was unable to run on the full 30M set,
+because of added memory overhead.
 
 The binary trees also take an impact on increased bucket sizes, which
 is a increased emphasis on insertion order may create deep buckets, which also
@@ -300,35 +302,34 @@ This means that different bucket sizes will scale differently.
 The results from the 30M dataset (table \ref{tab:speedups_30m_i7} and page
 \pageref{fig:ts_i7_30m}) show that it
 is possible to obtain speedup factors of up to $6.1$ with a fully concurrent
-locking mechanism on an 8-core system. With this as the reference, the gains of
+locking mechanism on an octo-core system. With this as the reference, the gains of
 a factor $3.3$ on insertions and a factor $5.2$ on searches for the sorted dynamic
-arrays seem respectable. The sorted dynamic array of 256 is the only structure
-(and size) that scales well on both insertion and search. The four virtual
-cores (Hyper-threading) have a greater impact on performance than expected,
-with most tests scaling up to 8 threads. The scaling of the i7 is high enough,
-that the results from the Xeon setup have been discarded due to inconsistencies
-from uncontrolled load factors. The scaling to the two resp. four cores can be
-seen in on page \pageref{fig:ts_shsp}.
+arrays seem respectable. The sorted dynamic array with a size of 256 is the
+only structure/size combination that scales well on both insertion and search. The
+four virtual cores (Hyper-threading) have a greater impact on performance than
+expected, with most tests scaling up to 8 threads. The scaling of the i7 is
+high enough, that the results from the Xeon setup have been discarded due to
+inconsistencies from uncontrolled load factors. The scaling of the two resp.
+four cores can be seen in on page \pageref{fig:ts_shsp}.
 
 The greatest gains appearing from unsorted array concurrency is evidence that
 the locking favors heavy work in the leaves. This fits perfectly with the
 expected node-level parallelism, which also explains why the greatest gains in
 insertion is seen with sorted arrays, being the only bucket structure with
-linear insertion times, and thereby up to $O(n^2)$ bursting times.
+linear insertion times, and thereby up to $O(b^2)$ bursting times.
 
 It is somewhat surprising that the searches take such a big hit from the
-locking, evident in the larger unsorted array cases, and when comparing with
+locking, seen in the larger unsorted array cases, and when comparing with
 the shakespeare set (table \ref{tab:speedups_shsp_i7}). The shakespeare tests
-result in a much smaller trie, and the continuous scaling of the trie allows us
-to conclude that the overhead from locks is dominant for smaller containers.
-This is seen by all containers favoring larger buckets, meaning a shallower
-trie and less locks. The results for the shakespeare and newsgroup sets show
-the same conclusion, the scaling can be seen on page \pageref{fig:ts_i7_nsgrp}.
+result in a much smaller trie, and the continuous scaling of the trie (seen in
+Table \ref{tab:bncount_shakespeare}) allows us to conclude that the overhead
+from locks is dominant for smaller containers. This is seen by all containers
+favoring larger buckets, meaning a shallower trie and less locks. The results
+for the shakespeare and newsgroup sets show the same conclusion, the scaling
+    can be seen on page \pageref{fig:ts_i7_nsgrp}.
 
 The empirical concurrency of the read-locks is hereby reduced. The difference
 is even greater on the Xeon machine, where the maximum speedup factor observed
 for searching was $4.1$ for the 30M set. The Xeon results are very inconsistent
     due to shared resources with other students, and have been only used for
     reference.
-
-
