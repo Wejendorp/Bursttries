@@ -21,6 +21,7 @@ int *NODE_COUNT = new int(0);
 #include <gsl/gsl_rng.h> // random number generator
 #include <time.h>
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 #ifndef BUCKETTYPE
@@ -114,10 +115,12 @@ int main() {
 #else
     std::ifstream fin("./datasets/shakespeare.txt");
     std::string word;
+    int i = 0;
     while(fin.good()) {
         fin >> word;
         std::string *st = new std::string(word);
         keys[i] = st;
+        i++;
     }
 #endif
     std::srand(std::time(0));
@@ -139,6 +142,7 @@ int main() {
             t->insert(std::make_pair<std::string, std::string*>(*st, st));
         }
         insert = addTimers(insert, start);
+        std::random_shuffle(keys.begin(), keys.end());
         start = startTimer();
         for(int i = 0; i < TESTSIZE; i++) {
 #ifdef TRIE

@@ -10,7 +10,6 @@
 #define __NODE_CHILD_UNUSED 0
 #define __NODE_CHILD_BUCKET 1
 #define __NODE_CHILD_NODE   2
-#define NODESIZE 128
 #define atomic (volatile AO_t *)
 
 template<
@@ -23,7 +22,7 @@ class ts_locked_node_2 {
         typedef ts_locked_node_2<K,V,B> node;
         typedef B<node> bucket;
         size_t _size;
-        int _max, _min;
+        unsigned int _max, _min;
 
         struct child_t {
             char tag; // 
@@ -36,7 +35,7 @@ class ts_locked_node_2 {
         V v;
         pthread_rwlock_t lock;
 
-        bucket *successor(int i) {
+        bucket *successor(unsigned int i) {
             i = succ_int(i);
             if(i < NODESIZE) {
                 if(children[i].tag == __NODE_CHILD_BUCKET)
@@ -46,15 +45,15 @@ class ts_locked_node_2 {
             }
             return NULL;
         }
-        int succ_int(int i) {
+        unsigned int succ_int(unsigned int i) {
             for(i = std::max(_min,i); i <= _max; i++) {
                 if(children[i].tag != __NODE_CHILD_UNUSED)
                     break;
             }
             return i;
         }
-        bucket *predecessor(int c) {
-            int i = pred_int(c);
+        bucket *predecessor(unsigned int c) {
+            unsigned int i = pred_int(c);
             if(i >= 0) {
                 if(children[i].tag == __NODE_CHILD_BUCKET)
                     return children[i].b;
@@ -63,8 +62,8 @@ class ts_locked_node_2 {
             }
             return NULL;
         }
-        int pred_int(int c) {
-            int i = c;
+        unsigned int pred_int(unsigned int c) {
+            unsigned int i = c;
             for(i = std::min(_max,i); i >= _min; i--) {
                 if(children[i].tag != __NODE_CHILD_UNUSED)
                     break;
@@ -87,7 +86,7 @@ class ts_locked_node_2 {
             AO_fetch_and_add1(atomic NODE_COUNT);
         }
         ~ts_locked_node_2() {
-            for(int i = _min; i < _max+1; i++) {
+            for(unsigned int i = _min; i < _max+1; i++) {
                 child_t *c = &children[i];
                 if(c->tag == __NODE_CHILD_NODE)
                     delete(c->n);
@@ -113,20 +112,21 @@ class ts_locked_node_2 {
                 _size++;
                 pthread_rwlock_unlock(&lock);
             } else {
-                char c = key[0];
-                child_t *child = &children[(int)c];
+                unsigned int c = (unsigned int)(unsigned char)key[0];
+                //std::cout << c << std::endl;
+                child_t *child = &children[c];
                 node * n = child->n;
                 bucket *b = child->b;
                 if(child->tag == __NODE_CHILD_NODE) {
                     n->insert(key.substr(1), value, NULL, NULL, &lock);
                 } else {
                     if(child->tag == __NODE_CHILD_UNUSED) {
-                        if((int)c < _max) _max = (int)c;
-                        if((int)c > _min) _min = (int)c;
+                        if(c < _max) _max = c;
+                        if(c > _min) _min = c;
 
                         // check for pred/succ if no override
-                        if(!llink) llink = predecessor((int)c);
-                        if(!rlink) rlink = successor((int)c);
+                        if(!llink) llink = predecessor(c);
+                        if(!rlink) rlink = successor(c);
                         // use linkedlist if only one found
                         if(!rlink) {
                             if(llink)
@@ -135,11 +135,10 @@ class ts_locked_node_2 {
                             if(!llink)
                                 llink = rlink->left;
                         }
-
                         child->tag = __NODE_CHILD_BUCKET;
-                        child->b = new bucket(BUCKETSIZE);
+                        b = new bucket(BUCKETSIZE);
+                        child->b = b;
                         _size++;
-                        b = child->b;
 
                         b->setLeft(llink);
                         b->setRight(rlink);

@@ -142,6 +142,7 @@ int main() {
         }
         insert = addTimers(insert, start);
         // READ PROCEDURE
+        std::random_shuffle(v->v->begin(), v->v->end());
         v->reset();
         start = startTimer();
         // Create writer-threads

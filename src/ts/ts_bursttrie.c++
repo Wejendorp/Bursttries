@@ -3,6 +3,8 @@
 
 #include <utility> // pair
 // Include all accessible containers here
+//#include "ts_locked_node.c++"
+#define NODESIZE 256
 #include "ts_locked_node.c++"
 #include "ts_locked_node_2.c++"
 #include "ts_lockfree_node.c++"

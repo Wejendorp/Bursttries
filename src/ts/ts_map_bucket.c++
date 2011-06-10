@@ -14,14 +14,13 @@ class ts_map_bucket {
         typedef ts_map_bucket<N> bucket;
         bucket *left, *right;
         map *m;
-        volatile unsigned int capacity, size;
+        volatile unsigned int capacity;
         pthread_rwlock_t rwlock;
 
         typedef typename map::iterator iterator;
 
         explicit ts_map_bucket(int cap) {
             capacity = cap;
-            size = 0;
             m = new map();
             pthread_rwlock_init(&rwlock, NULL);
             AO_fetch_and_add1(atomic BUCKET_COUNT);
@@ -48,7 +47,6 @@ class ts_map_bucket {
         void insert(const key_type &k, const value_type &v, pthread_rwlock_t *oldLock = NULL) {
             pthread_rwlock_wrlock(&rwlock);
             if(oldLock) pthread_rwlock_unlock(oldLock);
-            size++;
             (*m)[k] = v;
             pthread_rwlock_unlock(&rwlock);
         }
@@ -57,7 +55,6 @@ class ts_map_bucket {
             pthread_rwlock_wrlock(&rwlock);
             if(oldLock) pthread_rwlock_unlock(oldLock);
             ret = (bool)m->erase(key);
-            if(ret) size--;
             pthread_rwlock_unlock(&rwlock);
             return ret;
         }
@@ -74,8 +71,7 @@ class ts_map_bucket {
         node *burst() {
             pthread_rwlock_wrlock(&rwlock);
             node *newnode = NULL;
-            if(size > capacity) {
-                size = 0;
+            if(m->size() > capacity) {
                 newnode = new node();
                 typename map::iterator it;
                 bool first = true;

@@ -37,8 +37,10 @@ class ts_unsorted_bucket {
             left = NULL;
             right = NULL;
             pthread_rwlock_init(&lock, NULL);
+            AO_fetch_and_add1(atomic BUCKET_COUNT);
         }
         ~ts_unsorted_bucket() {
+            AO_fetch_and_add1(atomic BUCKETS_DESTROYED);
             vector_allocator.destroy(contents);
             vector_allocator.deallocate(contents, 1);
             pthread_rwlock_destroy(&lock);
