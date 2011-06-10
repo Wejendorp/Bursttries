@@ -14,6 +14,7 @@ notation will be used:
         $\alpha$& The alphabet size, or node size.\\
         b       & The bucket size.\\
         h       & The (maximum-)height of the trie. \\
+        l       & The length of the inserted key.\\\hline
     \end{tabular}
     \caption{Table of the analysis notation}
     \label{tab:notation}
@@ -89,8 +90,8 @@ Because of the added bursting and bucket insertion, the time complexity of
 insertion becomes $O(h+I_b\cdot b)$, where $I_b$ denotes insertion time of the
 bucket. Bursting is linear in bucket size, since insertions into an empty node
 are constant, and the bucket has at most b elements.
-Assuming linear bucket insertion time and only one burst, the worst case
-insertion bound becomes $O(h+b) + \sum_{n=1}^b n  = O(h+b^2)$. This only occurs
+Assuming logarithmic bucket insertion time and only one burst, the worst case
+insertion bound becomes $O(h+b \log b)$. This only occurs
 of all $b$ elements have the same next character, which has a probability of
 $\frac{1}{\alpha^b}$ in a uniformly distributed dataset.
 (see table \ref{tab:notation} for notation)
@@ -141,7 +142,8 @@ constant-time operation, but at the cost of $\alpha$ potentially unused slots
 allocated ($\alpha$ being the node or alphabet size). A slot, being a pointer,
 uses 8 bytes of space on a 64-bit machine.
 For the basic implementation, the nodes need only contain this array of size
-$((\alpha+1) \cdot 8)$ bytes, where the $+1$ is a pointer to the value type.
+$((\alpha+1) \cdot 8)$ bytes, where the $+1$ is a pointer to the value type or
+an end of string flag for sets.
 
 
 \section{Bucket structures}
@@ -255,18 +257,19 @@ When using arrays, however, a tradeoff between efficient insertions or
 efficient searches will have to be made. A sorted array is the most compressed
 logarithmic time searchable representation of the elements. This makes for
 cache- and time-efficient searching of the buckets, while increasing the
-insertion cost to become worst case linear in the bucket size, with bigger
-constant factors from reallocations.
+insertion cost to become worst case linear in the bucket size (moving all the
+following elements forward), with bigger constant factors from reallocations.
 
 % Space consumption
 If dynamic arrays are used, the array will have to be resized during some
 insertions. One approach could be to use an exact-fit array, but this would
 come at the cost of reallocating the array on every insertion. The space
 allocated can be maintained at a factor 4 of the actual load requiring only a
-logarithmic reallocation count. The overhead will be within a
+logarithmic reallocation count. This uses simple doubling when full and halving
+when the array is less than $1/4$ full. The overhead will be within a
 factor 4 of the elements' total size, since the array has no extra pointers to
-maintain. This is done by simple doubling, leading to an amortized constant
-time for reallocations. 
+maintain, and even within a factor 2 if no deletions are made. This is done
+by simple doubling, leading to an amortized constant time for reallocations. 
 
 Another approach is to allocate the full bucket capacity (a static array),
 possibly creating a factor $b$ waste if the bucket load is low.
@@ -275,16 +278,17 @@ possibly creating a factor $b$ waste if the bucket load is low.
 This means that either insertion or searching will be linear in the bucket
 size, and therefore define the limit on the desired bucket size.
 
+
 \begin{table}[h!]
     \centering
     \begin{tabular}[here]{ l || c | c | c}
         Operation & Average case & Worst case & Requires locking  \\ \hline
         Insert    & $O(1)$ & $O(1)$ & E \\ \hline
-        Delete    & $O(n)$ & $O(n)$ & E \\ \hline
-        Find      & $O(n)$ & $O(n)$ & C  \\ \hline
+        Delete    & $O(b)$ & $O(b)$ & E \\ \hline
+        Find      & $O(b)$ & $O(b)$ & C  \\ \hline
     \end{tabular}
     \caption{Time bounds for the bucket operations using unsorted static
-    arrays, $n$ denoting number of elements in the bucket. Insertion might be
+    arrays, $b$ denoting number of elements in the bucket. Insertion might be
     linear because of dynamic resizing of the array. The cost of the worst case
     constant insertion is one of a potentially large memory waste. Locking
     terms use E for exclusive and C for concurrent.}
@@ -295,11 +299,11 @@ size, and therefore define the limit on the desired bucket size.
     \begin{tabular}[here]{ l || c | c | c}
         Operation & Average case & Worst case & Requires locking  \\ \hline
         Insert    & $O(1) amortized$ & $O(1)$ amortized & E \\ \hline
-        Delete    & $O(n)$ & $O(n)$ & E \\ \hline
-        Find      & $O(n)$ & $O(n)$ & C  \\ \hline
+        Delete    & $O(b)$ & $O(b)$ & E \\ \hline
+        Find      & $O(b)$ & $O(b)$ & C  \\ \hline
     \end{tabular}
     \caption{Time bounds for the bucket operations using unsorted dynamic
-    arrays, $n$ denoting number of elements in the bucket. Insertion might be
+    arrays, $b$ denoting number of elements in the bucket. Insertion might be
     linear because of dynamic resizing of the array. Locking terms use E for
         exclusive and C for concurrent.}
     \label{tab:bounds:unsorteddynarray}
@@ -308,15 +312,23 @@ size, and therefore define the limit on the desired bucket size.
     \centering
     \begin{tabular}[here]{ l || c | c | c}
         Operation & Average case & Worst case & Requires locking  \\ \hline
-        Insert    & $O(n)$  & $O(n)$           & E \\ \hline
-        Delete    & $O(n)$  & $O(n)$           & E \\ \hline
-        Find      & $O(\log n)$ & $O(\log n)$ & C  \\ \hline
+        Insert    & $O(b)$  & $O(b)$           & E \\ \hline
+        Delete    & $O(b)$  & $O(b)$           & E \\ \hline
+        Find      & $O(\log b)$ & $O(\log b)$ & C  \\ \hline
     \end{tabular}
     \caption{Time bounds for the bucket operations using sorted dynamic arrays,
-    $n$ denoting number of elements in the bucket. Locking terms use E for
+    $b$ denoting number of elements in the bucket. Locking terms use E for
         exclusive and C for concurrent.}
     \label{tab:bounds:sortedarray}
 \end{table}
+
+Bursting of sorted arrays does not incur the full $O(b)$ cost of insertion, since
+the elements are fully sorted, and inserted again in sorted order. Therefore, no
+moving of elements is required. The implemented solution uses logarithmic search
+to determine the insertion point, which will then always be the end of the array.
+A possible improvement is to make a special burst insertion, using push\_back in
+constant time. The $O(\log b)$ time bound is therefore an upper limit for both trees
+and arrays.
 
 % Summary?
 
@@ -390,9 +402,9 @@ list approach.
 \begin{table}[h!]
     \centering
     \begin{tabular}[here]{ l | c | c | c | c}
-        Method      & begin()  & Next()           & Memory cost (B) & Memory (use)(B) \\ \hline
-        Linked list  & $O(1)$ & $O(1 + b) $        & $8\cdot2\cdot C$      & $O(1)$ \\
-        Tree-walk & $O(1)$ & $O(h \cdot \alpha + b)$   & $0$             & $O(h)$ \\ \hline
+        Method      & begin() & Next()           & Memory cost (B) & Memory (use)(B) \\ \hline
+        Linked list & $O(1)$  & $O(1 + b) $      & $8\cdot2\cdot C$      & $O(1)$ \\
+        Tree-walk   & $O(h)$  & $O(h \cdot \alpha + b)$ & $0$             & $O(h)$ \\ \hline
     \end{tabular}
     \caption{The possible options for iterator implementation, their added
     memory cost to the structure, and their memory consumption during use. Here
@@ -441,19 +453,19 @@ which leaves the following cases:
 
 This leaves open how to implement {\keyword predecessor} and {\keyword
 successor}. In order not to go through the entire children array in the search
-for a {\keyword successor} or {\keyword predecessor}, each node keeps a
+for a {\keyword successor} or {\keyword predecessor} bucket, each node keeps a
 {\keyword max} and {\keyword min} child pointer, allowing constant access to
 the neighboring nodes' first and last elements relevant for successor and
 predecessor search. Predecessor thus becomes a linear search of the current
 node, followed by at most $O(h)$ accesses to the {\keyword min} or {\keyword
-max} children, resulting in an $O(h+b)$ operation.
+max} children, resulting in an $O(h+\alpha)$ operation.
 
 A more efficient solution is to use a bitvector with the same size as the
 children array, allowing constant-time updates of the {\keyword max} and
 {\keyword min} pointers, which are otherwise dependent on a linear search of
 the array. For this purpose there exists an assembly instruction to find the
 first 1 bit in a DWORD. If these bitvectors were used instead of {\keyword max}
-and {\keyword min}, the factor $b$ of updating these can be made constant.
+and {\keyword min}, the factor $\alpha$ of updating these can be made constant.
 
 
 \section{Parallelisation}
@@ -531,7 +543,7 @@ bursting delays only the thread doing the bursting. An unlucky thread, however,
 might burst one bucket, only to trigger a burst of another, and so on. While
 highly unlikely, the time between the new node being available to other threads
 and inserting an element from the old bucket, the bucket may have been filled.
-This does pose a worst case bound of $O(\min(\alpha, b)^h)$, if every insertion
+This does pose a worst case bound of $O(\min(\alpha, b)^h)$ bursts, if every insertion
 into the child triggers new bursts.
 
 If updating an element is dependent on the state before the update, the operation
@@ -556,11 +568,11 @@ work is again only constant. Doing the swap before redistributing the
 keys leaves those keys invisible to other threads, which is why any concurrent
 search/remove calls are undefined. This guarantees at most a constant
 number of operations when creating a new level in the trie. An insertion
-therefore takes $O(h+I_b)$, without having to wait for locks.
+therefore takes amortized $O(l\cdot I_b)$, without having to wait for locks.
 
 The worst case for bursting is so so unlikely, that for all practical purposes
-an $O(b^2)$ burst time is expected. This becomes the dominant factor for most
-insertions, resulting in $O(h+b^2)$ insertion time for any number of concurrent
+a $O(b \log b)$ burst time is expected. This becomes the dominant factor for most
+insertions, resulting in $O(l \cdot b \log b)$ insertion time for any number of concurrent
 insertions.
 
 \subsubsection{Assisting}
@@ -581,7 +593,7 @@ container has a wait-free persistent iterator.
 Bursting can be made dynamically parallel up to a factor of $O(b)$ by
 using one thread for each element in the bucket, and relying on the recursive
 structure of the trie. This means bursting can theoretically be done in
-$O(1)$ using $b$ processors, but the upper bound depends on the
+$O(\log b)$ using $b$ processors, but the upper bound depends on the
 distribution of the elements.
 
 The assist logic can be implemented by adding a bucket pointer to the
@@ -591,9 +603,17 @@ in on iterating over the bucket, taking part in the remaining workload.
 This means that if $b$ insertions are made into the node
 below a bursting bucket, $b$ processors will join. Checking this pointer
 done on every level, taking $O(h)$ time, and not adding to the complexity.
-This makes it possible to encounter
-$O(b)$ work at every level, resulting in a parallelised wait-free
-bound of $O(hb)$ for $n$ insertions on $n$ processors.
+This makes it possible for an insertion to encounter
+$O(\log b)$ work at every level, resulting in a parallelised wait-free
+expected bound of $O(l \cdot \log b)$ for $n$ insertions on $n$ processors,
+while the upper bound is unchanged.
+
+Another option is to prioritize the bursting by adding references to any
+bursting buckets in the trie itself. If the threads are sent to help bursting
+before being allowed to start more insertions, the amount of assisting threads
+to a given bursting no longer depends on the concurrently inserted keys,
+but simply the number of ongoing insertions. This makes the expected case
+using local assists the worst case when $O(b)$ processors.
 
 \subsubsection{The bucket factor}
 % BUT BUCKETS SUCK!

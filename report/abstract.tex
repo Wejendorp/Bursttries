@@ -30,11 +30,11 @@ root of the trie, but not successfully implemented.
 \\\\
 {\bf Resume}
 \\\\
-Da skalering af processorer i stigende grad fokuserer på forøgelse af antallet af
+Da skalering af CPUer i stigende grad fokuserer på forøgelse af antallet af
 kerner, er højt paralleliserbare data strukturer af stigende vigtighed.
 
 Dette projekt søger at undersøge hvilke kompromiser der indgår i implementation
-af burst trie datastrukturen, der er vist at være på højde med hash maps
+af burst trie datastrukturen, der er blevet vist at være på højde med hash maps
 både med ydelse og hukommelses forbrug. Burst trien giver hurtig tilgang til
 strenge og heltal, men forskellige bucket typer har forskellige fordele og ulemper.
 
@@ -45,9 +45,9 @@ af det indsatte data, vil forskellige variationer være bedst. Dette betyder at
 vi må evaluere modifikationerne der er nødvendige for at gøre strukturen til
 en trådsikker sæt-, multisæt- og map struktur.
 
-Ydelsen for trien ved sekventiel test ses at gå ned med forøgede bucket størrelse
+Ydelsen for trien ved sekventiel test observeres at falde med forøgede bucket størrelse
 mens den omvendte tendens ses for parallel skalering for større datasæt. Derfor
-findes der ingen gylden bucket stoerrelse.
+findes der ingen gylden bucket størrelse.
 
 Med brug af relativt simple locking metoder, observeres speedups på op til en
 faktor 6 for søgninger og 3.5 for indsættelser med brug af 8 processorer.

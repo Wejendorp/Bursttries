@@ -17,7 +17,9 @@ array bucket with a size of 32.
 In theory the read-locks allow full concurrency, and as such linear scaling to the
 processor count was expected. The results show that the one lock per node
 approach is not a globally suited solution, since the scaling is very dependent
-on the height of the trie.
+on the height of the trie. The searches favoring unsorted buckets is an indication
+that the node-level parallelism is the bottleneck, allowing the biggest portion
+of the work to be done in the leaves.
 
 For insertions the exclusive locking comes at the cost of negative speedup for
 over-saturated processors due to synchronization, and when combined with very
@@ -37,6 +39,10 @@ The lock-free solution was attempted implemented, but without success.
 Therefore, no empirical results are available for the lock-free solution.
 
 \section{Future work}
+Recommended smaller optimizations from the current implementation:
+Avoiding the linear scan of the {\keyword max/min} index updates by using
+bitvectors, and using constant-time burst insertions for sorted arrays.
+
 A caveat of the chosen implementation is the lack of a reduction criteria
 for removals beyond the naive. Such a criteria will be able to guarantee
 that a reduction is only one level at a time. This is expected to  make
@@ -55,7 +61,7 @@ and the resulting structure can scale to any number of processors.
 The proposed structure only covers the targetted operations of inserting
 and searching. The added STL functionalities of iteration and removal
 have not been covered in the proposed lock-free trie. This could be the
-focus for future work on the trie.
+focus for future work on the lock-free trie.
 
 %% Implementing the trie
 %In extending the structure to support even simple removals, an extra counter
